@@ -63,10 +63,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - Thanks to the developers of the libraries used in this project, including OpenCV, MediaPipe, and others.
 - Special thanks to the community for their support and contributions to accessibility technologies.
 
-## Contact
-For any inquiries or feedback, please contact [your-email@example.com].
-```
-
 ### Notes:
 - Replace `https://github.com/yourusername/disability-assistant-app.git` with the actual URL of your repository.
 - Update the contact email with your actual email address.
