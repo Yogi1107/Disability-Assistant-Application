@@ -53,9 +53,6 @@ Users can customize their profiles by accessing the settings menu, where they ca
 ## Contributing
 Contributions are welcome! If you have suggestions for improvements or new features, feel free to open an issue or submit a pull request.
 
-## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
 ## Acknowledgments
 - Thanks to the developers of the libraries used in this project, including OpenCV, MediaPipe, and others.
 - Special thanks to the community for their support and contributions to accessibility technologies.
