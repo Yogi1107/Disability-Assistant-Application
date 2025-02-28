@@ -1,197 +1,125 @@
-import tkinter as tk
-from tkinter import messagebox
-from tkhtmlview import HTMLLabel
+from flask import Flask, render_template, request, redirect, url_for, flash
 import os
 import json
+import datetime
+import pywhatkit
+import webbrowser
 
-class DisabilityAssistantApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Disability Assistant Application")
-        self.root.geometry("800x600")
-        self.root.configure(bg="#f0f0f0")
-        
-        # Initialize user profile system
-        self.init_user_profile()
-        
-        # Create main UI
-        self.create_main_ui()
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Required for flashing messages
+
+# Initialize user profile system
+def init_user_profile():
+    """Initialize user profile system"""
+    if not os.path.exists('user_profiles'):
+        os.makedirs('user_profiles')
     
-    def init_user_profile(self):
-        """Initialize user profile system"""
-        if not os.path.exists('user_profiles'):
-            os.makedirs('user_profiles')
-        
-        self.current_user_id = "default_user"
-        self.user_profile = self.get_user_profile(self.current_user_id)
+    current_user_id = "default_user"
+    user_profile = get_user_profile(current_user_id)
+    return user_profile
+
+def get_user_profile(user_id):
+    profile_path = f'user_profiles/{user_id}.json'
+    if os.path.exists(profile_path):
+        with open(profile_path, 'r') as f:
+            return json.load(f)
     
-    def get_user_profile(self, user_id):
-        profile_path = f'user_profiles/{user_id}.json'
-        if os.path.exists(profile_path):
-            with open(profile_path, 'r') as f:
-                return json.load(f)
+    return {
+        'user_id': user_id,
+        'name': 'User  ',
+        'preferences': {
+            'voice_speed': 1.0,
+            'voice_volume': 1.0,
+            'theme': 'light',
+            'font_size': 'medium'
+        },
+        'history': [],
+        'custom_gestures': {},
+        'emergency_contacts': []
+    }
+
+@app.route('/')
+def index():
+    user_profile = init_user_profile()
+    return render_template('index.html', user_profile=user_profile)
+
+@app.route('/voice_assistant', methods=['GET', 'POST'])
+def voice_assistant():
+    if request.method == 'POST':
+        command = request.form.get('command')
+        response = process_voice_command(command)
+        return render_template('voice_assistant.html', response=response)
+    return render_template('voice_assistant.html')
+
+@app.route('/learning_assistant')
+def learning_assistant():
+    return render_template('learning_assistant.html')
+
+@app.route('/sign_detection')
+def sign_detection():
+    return render_template('sign_detection.html')
+
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    user_profile = init_user_profile()
+    if request.method == 'POST':
+        user_profile['preferences']['voice_speed'] = float(request.form.get('voice_speed'))
+        user_profile['preferences']['voice_volume'] = float(request.form.get('voice_volume'))
+        user_profile['preferences']['theme'] = request.form.get('theme')
+        user_profile['preferences']['font_size'] = request.form.get('font_size')
         
-        return {
-            'user_id': user_id,
-            'name': 'User    ',
-            'preferences': {
-                'voice_speed': 1.0,
-                'voice_volume': 1.0,
-                'theme': 'light',
-                'font_size': 'medium'
-            },
-            'history': [],
-            'custom_gestures': {},
-            'emergency_contacts': []
-        }
+        # Save the updated profile
+        save_user_profile(user_profile)
+        flash('Settings have been saved successfully!')
+        return redirect(url_for('settings'))
     
-    def create_main_ui(self):
-        # Load HTML content
-        html_content = """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Disability Assistant Application</title>
-            <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-            <style>
-                * {
-                    box-sizing: border-box;
-                    margin: 0;
-                    padding: 0;
-                }
-                body {
-                    font-family: 'Roboto', sans-serif;
-                    background-color: #f0f0f0;
-                    color: #333;
-                }
-                header {
-                    background-color: #4a7abc;
-                    padding: 20px;
-                    text-align: center;
-                    color: white;
-                }
-                h1 {
-                    font-size: 2.5em;
-                }
-                main {
-                    padding: 20px;
-                }
-                .feature-container {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                    gap: 20px;
-                }
-                .feature-card {
-                    background-color: white;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-                    padding: 20px;
-                    text-align: center;
-                    transition: transform 0.2s;
-                }
-                .feature-card:hover {
-                    transform: translateY(-5px);
-                }
-                .feature-card h2 {
-                    font-size: 1.5em;
-                    margin-bottom: 10px;
-                }
-                .feature-card p {
-                    font-size: 1em;
-                    margin-bottom: 20px;
-                }
-                .feature-card button {
-                    background-color: #4a7abc;
-                    color: white;
-                    border: none;
-                    border-radius: 5px;
-                    padding: 10px 20px;
-                    cursor: pointer;
-                    font-size: 1em;
-                    transition: background-color 0.3s;
-                }
-                .feature-card button:hover {
-                    background-color: #3a5a8c;
-                }
-                footer {
-                    background-color: #333;
-                    color: white;
-                    text-align: center;
-                    padding: 10px;
-                    position: relative;
-                    bottom: 0;
-                    width: 100%;
-                }
-            </style>
-        </head>
-        <body>
-            <header>
-                <h1>Disability Assistant Application</h1>
-            </header>
-            <main>
-                <div class="feature-container">
-                    <div class="feature-card" onclick="openVoiceAssistant()">
-                        <h2>Voice Assistance</h2>
-                        <p>For visual impairment assistance</p>
-                        <button>Launch</button>
-                    </div>
-                    <div class="feature-card" onclick="openLearningAssistant()">
-                        <h2>AI Assistant</h2>
-                        <p>For learning disability assistance</p>
-                        <button>Launch</button>
-                    </div>
-                    <div class="feature-card" onclick="openSignDetection()">
-                        <h2>Sign Detection</h2>
-                        <p>For speech impairment assistance</p>
-                        <button>Launch</button>
-                    </div>
-                    <div class="feature-card" onclick="openSettings()">
-                        <h2>Settings</h2>
-                        <p>Customize application preferences</p>
-                        <button>Launch</button>
-                    </div>
-                </div>
-            </main>
-            <footer>
-                <p>© 2025 Disability Assistant - Final Year Project</p>
-            </footer>
-        </body>
-        <script>
-            function openVoiceAssistant() {
-                alert("Voice Assistant feature is not implemented yet.");
-            }
-            function openLearningAssistant() {
-                alert("AI Assistant feature is not implemented yet.");
-            }
-            function openSignDetection() {
-                alert("Sign Detection feature is not implemented yet.");
-            }
-            function openSettings() {
-                alert("Settings feature is not implemented yet.");
-            }
-        </script>
-        </html>
-        """
+    return render_template('settings.html', user_profile=user_profile)
+
+def save_user_profile(user_profile):
+    with open(f'user_profiles/{user_profile["user_id"]}.json', 'w') as f:
+        json.dump(user_profile, f)
+
+def process_voice_command(command):
+    """Process a voice command"""
+    response = "I'm not sure how to help with that."
+    
+    if "time" in command:
+        current_time = datetime.datetime.now().strftime("%I:%M %p")
+        response = f"The current time is {current_time}."
+    
+    elif "date" in command or "day" in command:
+        current_date = datetime.datetime.now().strftime("%A, %B %d, %Y")
+        response = f"Today is {current_date}."
+    
+    elif "open youtube" in command:
+        response = "Opening YouTube."
+        webbrowser.open("https://www.youtube.com")
+    
+    elif "search for" in command and "video" in command:
+        search_query = command.replace("search for", "").replace("video", "").strip()
+        response = f"Searching YouTube for {search_query}."
+        pywhatkit.playonyt(search_query)
+        return response  # Return early since we are opening a new page
+    
+    elif "search" in command:
+        search_query = command.replace("search", "").replace("for", "").strip()
+        response = f"Searching for {search_query}."
+        webbrowser.open(f"https://www.google.com/search?q={search_query}")
         
-        # Create HTML label
-        self.html_label = HTMLLabel(self.root, html=html_content)
-        self.html_label.pack(fill=tk.BOTH, expand=True)
+    elif "read" in command and "news" in command:
+        response = "Here are the latest headlines. Opening a news website."
+        webbrowser.open("https://news.google.com")
+    
+    elif "call emergency contact" in command:
+        user_profile = init_user_profile()
+        if user_profile['emergency_contacts']:
+            contact = user_profile['emergency_contacts'][0]  # Just an example
+            response = f"Calling {contact}."
+            # Here you would implement the actual calling functionality
+        else:
+            response = "No emergency contacts found in your profile."
+    
+    return response
 
-    def open_voice_assistant(self):
-        messagebox.showinfo("Voice Assistant", "Opening Voice Assistant...")
-
-    def open_learning_assistant(self):
-        messagebox.showinfo("AI Assistant", "Opening AI Assistant...")
-
-    def open_sign_detection(self):
-        messagebox.showinfo("Sign Detection", "Opening Sign Detection...")
-
-    def open_settings(self):
-        messagebox.showinfo("Settings", "Opening Settings...")
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = DisabilityAssistantApp(root)
-    root.mainloop()
+if __name__ == '__main__':
+    app.run(debug=True)
