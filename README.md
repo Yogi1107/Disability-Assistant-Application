@@ -1,6 +1,3 @@
-Certainly! Below is a sample `README.md` file for the Disability Assistant Application code you provided. This file includes sections for an overview, features, installation instructions, usage, and more.
-
-```markdown
 # Disability Assistant Application
 
 ## Overview
