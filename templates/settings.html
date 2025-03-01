@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Settings</h1>
+    </header>
+    <main>
+        <form method="POST">
+            <label for="voice_speed">Voice Speed:</label>
+            <input type="number" step="0.1" name="voice_speed" id="voice_speed" value="{{ user_profile['preferences']['voice_speed'] }}" required>
+            <br>
+            <label for="voice_volume">Voice Volume:</label>
+            <input type="number" step="0.1" name="voice_volume" id="voice_volume" value="{{ user_profile['preferences']['voice_volume'] }}" required>
+            <br>
+            <label for="theme">Theme:</label>
+            <select name="theme" id="theme">
+                <option value="light" {% if user_profile['preferences']['theme'] == 'light' %}selected{% endif %}>Light</option>
+                <option value="dark" {% if user_profile['preferences']['theme'] == 'dark' %}selected{% endif %}>Dark</option>
+            </select>
+            <br>
+            <label for="font_size">Font Size:</label>
+            <select name="font_size" id="font_size">
+                <option value="small" {% if user_profile['preferences']['font_size'] == 'small' %}selected{% endif %}>Small</option>
+                <option value="medium" {% if user_profile['preferences']['font_size'] == 'medium' %}selected{% endif %}>Medium</option>
+                <option value="large" {% if user_profile['preferences']['font_size'] == 'large' %}selected{% endif %}>Large</option>
+            </select>
+            <br>
+            <button type="submit">Save Settings</button>
+        </form>
+        <button onclick="window.history.back()">Back</button>
+    </main>
+    <footer>
+        <p>© 2025 Disability Assistant - Final Year Project</p>
+    </footer>
+</body>
+</html>
