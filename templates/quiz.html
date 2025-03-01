@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Feature</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #quiz-container {
+            display: none; /* Initially hide the quiz container */
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 10px;
+            background: #e9ecef;
+            margin: 5px 0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        li:hover {
+            background: #d3d3d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Quiz Feature</h1>
+
+        <!-- Navigation for Quiz Sub-Features -->
+        <div>
+            <button onclick="showCreateQuiz()">Create Quiz</button>
+            <button onclick="showStartQuiz()">Start Quiz</button>
+        </div>
+
+        <!-- Create Quiz Section -->
+        <div id="create-quiz">
+            <h2>Create a Quiz</h2>
+            <form id="quiz-form" method="POST">
+                <div class="form-group">
+                    <label for="question">Question:</label>
+                    <input type="text" id="question" name="question" required>
+                </div>
+                <div class="form-group">
+                    <label for="options">Options (A, B, C, D):</label>
+                    <input type="text" name="options" placeholder="Option A" required>
+                    <input type="text" name="options" placeholder="Option B" required>
+                    <input type="text" name="options" placeholder="Option C" required>
+                    <input type="text" name="options" placeholder="Option D" required>
+                </div>
+                <button type="button" onclick="addQuestion()">Add Another Question</button>
+                <button type="submit" name="create_quiz">Create Quiz</button>
+            </form>
+        </div>
+
+        <!-- Start Quiz Section -->
+        <div id="quiz-container">
+            <h2>Start Quiz</h2>
+            <div id="quiz-content">
+                <p id="quiz-question"></p>
+                <div id="quiz-options"></div>
+            </div>
+            <button onclick="startQuiz()">Start Quiz</button>
+            <button onclick="submitAnswer()">Submit Answer</button>
+            <p id="quiz-feedback"></p> <!-- Feedback message will be displayed here -->
+        </div>
+
+        <br>
+        <a href="{{ url_for('index') }}">Back to Home</a>
+    </div>
+
+    <script>
+        let currentQuestionIndex = 0;
+        let quizData = [];
+
+        function showCreateQuiz() {
+            document.getElementById('create-quiz').style.display = 'block';
+            document.getElementById('quiz-container').style.display = 'none';
+        }
+
+        function showStartQuiz() {
+            document.getElementById('create-quiz').style.display = 'none';
+            document.getElementById('quiz-container').style.display = 'block';
+        }
+
+        function addQuestion() {
+            const questionInput = document.getElementById('question');
+            const optionsInputs = document.querySelectorAll('input[name="options"]');
+            const options = Array.from(optionsInputs).map(input => input.value);
+
+            if (questionInput.value && options.every(opt => opt)) {
+                // Create a new question form
+                const newQuestionDiv = document.createElement('div');
+                newQuestionDiv.classList.add('form-group');
+                newQuestionDiv.innerHTML = `
+                    <label for="question">Question:</label>
+                    <input type="text" name="question" required>
+                    <label for="options">Options (A, B, C, D):</label>
+                    <input type="text" name="options" placeholder="Option A" required>
+                    <input type="text" name="options" placeholder="Option B" required>
+                    <input type="text" name="options" placeholder="Option C" required>
+                    <input type="text" name="options" placeholder="Option D" required>
+                `;
+                document.getElementById('quiz-form').insertBefore(newQuestionDiv, document.getElementById('quiz-form').lastChild);
+                questionInput.value = ''; // Clear the question input
+                optionsInputs.forEach(input => input.value = ''); // Clear the options inputs
+            } else {
+                alert("Please fill in the question and all options before adding another question.");
+            }
+        }
+
+        function startQuiz() {
+            fetch('/start_quiz')
+                .then(response => response.json())
+                .then(data => {
+                    quizData = data; // Store the quiz data
+                    currentQuestionIndex = 0; // Reset question index
+                    displayQuestion();
+                });
+        }
+
+        function displayQuestion() {
+            if (currentQuestionIndex < quizData.length) {
+                const question = quizData[currentQuestionIndex].question;
+                const options = quizData[currentQuestionIndex].options;
+
+                document.getElementById('quiz-question').innerText = question;
+                const optionsDiv = document.getElementById('quiz-options');
+                optionsDiv.innerHTML = '';
+
+                options.forEach((option, index) => {
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = 'quiz-option';
+                    radio.value = String.fromCharCode(65 + index); // A, B, C, D
+                    const label = document.createElement('label');
+                    label.innerText = option;
+                    optionsDiv.appendChild(radio);
+                    optionsDiv.appendChild(label);
+                    optionsDiv.appendChild(document.createElement('br'));
+                });
+
+                speak(question + " " + options.join(", ")); // Speak the question and options
+            } else {
+                alert("Quiz completed!");
+                // Optionally, you can reset or redirect to another page
+            }
+        }
+
+        function submitAnswer() {
+            const selectedOption = document.querySelector('input[name="quiz-option"]:checked');
+            if (!selectedOption) {
+                alert("Please select an option before submitting.");
+                return;
+            }
+
+            const answer = selectedOption.value; // Get the selected answer
+            fetch('/quiz_command', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ command: 'option ' + answer })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('quiz-feedback').innerText = data.response; // Display feedback
+                speak(data.response); // Speak the feedback
+                if (data.next_question) {
+                    currentQuestionIndex++; // Increment the question index
+                    displayQuestion(); // Display the next question if available
+                } else {
+                    alert("Quiz completed!"); // Notify the user that the quiz is completed
+                }
+            });
+        }
+    </script>
+</body>
+</html>

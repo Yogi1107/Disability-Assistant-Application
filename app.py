@@ -1,12 +1,20 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 import os
 import json
 import datetime
 import pywhatkit
 import webbrowser
+import speech_recognition as sr
+import pyttsx3
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Required for flashing messages
+
+# Initialize text-to-speech engine
+engine = pyttsx3.init()
+
+# Global variable to keep track of the current question index
+current_question_index = 0
 
 # Initialize user profile system
 def init_user_profile():
@@ -26,7 +34,7 @@ def get_user_profile(user_id):
     
     return {
         'user_id': user_id,
-        'name': 'User  ',
+        'name': 'User            ',
         'preferences': {
             'voice_speed': 1.0,
             'voice_volume': 1.0,
@@ -48,15 +56,116 @@ def voice_assistant():
     if request.method == 'POST':
         command = request.form.get('command')
         response = process_voice_command(command)
+        speak(response)  # Speak the response
         return render_template('voice_assistant.html', response=response)
     return render_template('voice_assistant.html')
 
-@app.route('/learning_assistant')
+@app.route('/learning_assistant', methods=['GET', 'POST'])
 def learning_assistant():
-    return render_template('learning_assistant.html')
+    resources = [
+        {
+            'title': 'American Sign Language (ASL) Basics',
+            'description': 'Learn the basics of American Sign Language.',
+            'link': 'https://www.startasl.com/'
+        },
+        {
+            'title': 'Sign Language Dictionary',
+            'description': 'A comprehensive dictionary for sign language.',
+            'link': 'https://www.signlanguage101.com/'
+        },
+        {
+            'title': 'YouTube Sign Language Tutorials',
+            'description': 'Watch tutorials on YouTube to learn sign language.',
+            'link': 'https://www.youtube.com/results?search_query=sign+language+tutorials'
+        },
+        {
+            'title': 'Communication Tips for Interacting with Disabled Individuals',
+            'description': 'Learn how to effectively communicate with disabled individuals.',
+            'link': 'https://www.nichd.nih.gov/health/topics/communication/conditioninfo/learning'
+        }
+    ]
+    return render_template('learning_assistant.html', resources=resources)
+
+@app.route('/quiz', methods=['GET', 'POST'])
+def quiz():
+    if request.method == 'POST':
+        questions = request.form.getlist('question')
+        options_list = request.form.getlist('options')
+        
+        if questions and options_list:
+            # Load existing quizzes or create a new list
+            if os.path.exists('quiz.json'):
+                with open('quiz.json', 'r') as f:
+                    quiz_data = json.load(f)
+            else:
+                quiz_data = []  # Initialize as an empty list
+
+            # Append each question and its options
+            for i in range(len(questions)):
+                quiz_data.append({
+                    'question': questions[i],
+                    'options': options_list[i*4:(i+1)*4]  # Assuming 4 options per question
+                })
+
+            # Save the updated quiz data
+            with open('quiz.json', 'w') as f:
+                json.dump(quiz_data, f)
+
+            flash('Quiz questions added successfully!')
+            return redirect(url_for('quiz'))  # Redirect to the same page to show the quiz
+
+    return render_template('quiz.html')
+
+@app.route('/start_quiz', methods=['GET'])
+def start_quiz():
+    with open('quiz.json', 'r') as f:
+        quiz_data = json.load(f)
+    return jsonify(quiz_data)  # Return all quiz questions and options
+
+@app.route('/quiz_command', methods=['POST'])
+def quiz_command():
+    global current_question_index
+    command = request.json.get('command')
+
+    # Load quiz data
+    with open('quiz.json', 'r') as f:
+        quiz_data = json.load(f)
+
+    # Check if the command is to select an option
+    if command.startswith("option "):
+        selected_option = command.split(" ")[1].upper()
+        option_map = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
+
+        # Check if the selected option is valid
+        if selected_option in option_map and option_map[selected_option] < len(quiz_data[current_question_index]['options']):
+            # Here you can process the selected option (e.g., check if it's correct)
+            correct_answer = "A"  # Replace with actual logic to determine the correct answer
+            if selected_option == correct_answer:
+                response = "Correct answer!"
+            else:
+                response = "Incorrect answer. The correct answer was " + correct_answer + "."
+
+            # Move to the next question
+            current_question_index += 1
+            if current_question_index < len(quiz_data):
+                # Speak the next question
+                next_question = quiz_data[current_question_index]['question']
+                options = quiz_data[current_question_index]['options']
+                speak(next_question + " " + ", ".join(options))  # Speak the next question and options
+                return jsonify({'response': response, 'next_question': next_question})
+            else:
+                response += " Quiz completed!"
+                current_question_index = 0  # Reset for the next quiz
+                return jsonify({'response': response})
+
+        else:
+            return jsonify({'response': 'Invalid option. Please select a valid option.'})
+
+    return jsonify({'response': 'Command not recognized.'})
 
 @app.route('/sign_detection')
 def sign_detection():
+    # Placeholder for the sign detection feature
     return render_template('sign_detection.html')
 
 @app.route('/settings', methods=['GET', 'POST'])
@@ -121,5 +230,25 @@ def process_voice_command(command):
     
     return response
 
+def speak(text):
+    """Convert text to speech"""
+    engine.say(text)
+    engine.runAndWait()
+
+def listen():
+    """Listen for a voice command"""
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening...")
+        audio = recognizer.listen(source)
+        try:
+            command = recognizer.recognize_google(audio)
+            print(f"You said: {command}")
+            return command
+        except sr.UnknownValueError:
+            return "Sorry, I did not understand that."
+        except sr.RequestError:
+            return "Could not request results from Google Speech Recognition service."
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port='5001')

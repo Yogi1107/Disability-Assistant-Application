@@ -3,20 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Assistant</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Learning Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .resource {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .resource a {
+            text-decoration: none;
+            color: blue;
+        }
+        .resource a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>AI Assistant</h1>
-    </header>
-    <main>
-        <p>This is the AI Assistant feature.</p>
-        <button onclick="window.history.back()">Back</button>
-    </main>
-    <footer>
-        <p>© 2025 Disability Assistant - Final Year Project</p>
-    </footer>
+    <h1>Learning Assistant: Communicating with Disabled Individuals</h1>
+    <p>Welcome to the Learning Assistant! Here you can find resources to help you learn how to communicate effectively with disabled individuals, including sign language.</p>
+    
+    <h2>Resources</h2>
+    {% for resource in resources %}
+        <div class="resource">
+            <h3>{{ resource.title }}</h3>
+            <p>{{ resource.description }}</p>
+            <a href="{{ resource.link }}" target="_blank">Learn More</a>
+        </div>
+    {% endfor %}
+    
+    <h2>Interactive Quiz</h2>
+    <p>Test your knowledge about communicating with disabled individuals!</p>
+    <button onclick="alert('Quiz feature coming soon!')">Start Quiz</button>
 </body>
 </html>

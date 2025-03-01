@@ -13,22 +13,27 @@
     </header>
     <main>
         <div class="feature-container">
-            <div class="feature-card" onclick="location.href='{{ url_for('voice_assistant') }}'">
+            <div class="feature-card" onclick="location.href='{{ url_for('voice_assistant') }}'" role="button" tabindex="0">
                 <h2>Voice Assistance</h2>
                 <p>For visual impairment assistance</p>
                 <button>Launch</button>
             </div>
-            <div class="feature-card" onclick="location.href='{{ url_for('learning_assistant') }}'">
+            <div class="feature-card" onclick="location.href='{{ url_for('learning_assistant') }}'" role="button" tabindex="0">
                 <h2>AI Assistant</h2>
                 <p>For learning disability assistance</p>
                 <button>Launch</button>
             </div>
-            <div class="feature-card" onclick="location.href='{{ url_for('sign_detection') }}'">
+            <div class="feature-card" onclick="location.href='{{ url_for('sign_detection') }}'" role="button" tabindex="0">
                 <h2>Sign Detection</h2>
                 <p>For speech impairment assistance</p>
                 <button>Launch</button>
             </div>
-            <div class="feature-card" onclick="location.href='{{ url_for('settings') }}'">
+            <div class="feature-card" onclick="location.href='{{ url_for('quiz') }}'" role="button" tabindex="0">
+                <h2>Quiz</h2>
+                <p>For creating and starting quizzes for visually impaired students</p>
+                <button>Launch</button>
+            </div>
+            <div class="feature-card" onclick="location.href='{{ url_for('settings') }}'" role="button" tabindex="0">
                 <h2>Settings</h2>
                 <p>Customize application preferences</p>
                 <button>Launch</button>

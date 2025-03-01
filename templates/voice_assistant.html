@@ -4,25 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voice Assistant</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <header>
-        <h1>Voice Assistant</h1>
-    </header>
-    <main>
-        <form method="POST">
-            <input type="text" name="command" placeholder="Say something..." required>
-            <button type="submit">Submit</button>
-        </form>
-        {% if response %}
-            <p>Response: {{ response }}</p>
-        {% endif %}
-        <button onclick="window.history.back()">Back</button>
-    </main>
-    <footer>
-        <p>© 2025 Disability Assistant - Final Year Project</p>
-    </footer>
-</body>
-</html>
+    <h1>Voice Assistant</h1>
+    <form method="POST">
+        <input type="text" name="command" placeholder="Type your command here...">
+        <button type="submit">Submit</button>
+    </form>
+    <button onclick="startListening()">Speak Command</button

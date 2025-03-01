@@ -6,6 +6,54 @@
     <title>Settings</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body.dark-theme {
+            background-color: #121212; /* Dark background */
+            color: #ffffff; /* Light text */
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        main {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -20,7 +68,7 @@
             <input type="number" step="0.1" name="voice_volume" id="voice_volume" value="{{ user_profile['preferences']['voice_volume'] }}" required>
             <br>
             <label for="theme">Theme:</label>
-            <select name="theme" id="theme">
+            <select name="theme" id="theme" onchange="applyTheme()">
                 <option value="light" {% if user_profile['preferences']['theme'] == 'light' %}selected{% endif %}>Light</option>
                 <option value="dark" {% if user_profile['preferences']['theme'] == 'dark' %}selected{% endif %}>Dark</option>
             </select>
@@ -33,11 +81,40 @@
             </select>
             <br>
             <button type="submit">Save Settings</button>
+            <button type="button" onclick="testVoice()">Test Voice</button>
         </form>
         <button onclick="window.history.back()">Back</button>
     </main>
     <footer>
         <p>© 2025 Disability Assistant - Final Year Project</p>
     </footer>
+
+    <script>
+        function applyTheme() {
+            const theme = document.getElementById('theme').value;
+            if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.classList.remove('dark-theme');
+            }
+        }
+
+        function testVoice() {
+            const speed = parseFloat(document.getElementById('voice_speed').value);
+            const volume = parseFloat(document.getElementById('voice_volume').value);
+            const testMessage = "This is a test of the voice settings.";
+
+            // Set the voice speed and volume
+            const utterance = new SpeechSynthesisUtterance(testMessage);
+            utterance.rate = speed; // Set voice speed
+            utterance.volume = volume; // Set voice volume
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Apply the theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            applyTheme();
+        });
+    </script>
 </body>
 </html>
