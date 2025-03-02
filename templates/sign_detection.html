@@ -6,17 +6,87 @@
     <title>Sign Detection</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Add some basic styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+        #videoContainer {
+            width: 640px;
+            height: 480px;
+            margin: auto;
+            background-color: black;
+        }
+        #gestureLabel, #sentenceLabel {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
     <header>
         <h1>Sign Detection</h1>
     </header>
     <main>
-        <p>This is the Sign Detection feature.</p>
+        <div id="videoContainer">
+            <video id="video" width="640" height="480" autoplay></video>
+        </div>
+        <div id="gestureLabel">Detected Gesture: DETECTING...</div>
+        <div id="sentenceLabel">Meaning: ...</div>
         <button onclick="window.history.back()">Back</button>
     </main>
     <footer>
         <p>© 2025 Disability Assistant - Final Year Project</p>
     </footer>
+
+    <script>
+        // Access the video stream
+        const video = document.getElementById('video');
+        navigator.mediaDevices.getUser Media({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+                startVideoProcessing();
+            })
+            .catch(err => {
+                console.error("Error accessing the camera: ", err);
+            });
+
+        function startVideoProcessing() {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 640;
+            canvas.height = 480;
+
+            setInterval(() => {
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                sendFrameToServer(imageData);
+            }, 100); // Send frame every 100ms
+        }
+
+        function sendFrameToServer(imageData) {
+            // Convert image data to a Blob
+            const blob = new Blob([imageData.data], { type: 'image/png' });
+
+            const formData = new FormData();
+            formData.append('frame', blob);
+
+            fetch('/process_frame', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update the UI with the detected gesture and meaning
+                document.getElementById('gestureLabel').innerText = `Detected Gesture: ${data.gesture}`;
+                document.getElementById('sentenceLabel').innerText = `Meaning: ${data.meaning}`;
+            })
+            .catch(error => {
+                console.error('Error processing frame:', error);
+            });
+        }
+    </script>
 </body>
 </html>
