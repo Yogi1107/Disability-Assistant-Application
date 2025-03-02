@@ -4,11 +4,527 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voice Assistant</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --gray: #9ca3af;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        
+        .assistant-icon {
+            width: 120px;
+            height: 120px;
+            background-color: var(--primary-light);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mic-icon {
+            font-size: 50px;
+            color: white;
+        }
+        
+        .voice-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            font-size: 24px;
+            cursor: pointer;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .voice-btn:hover {
+            background-color: var(--primary-dark);
+            transform: scale(1.05);
+        }
+        
+        .voice-btn.listening {
+            background-color: var(--danger);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+        
+        .status {
+            margin: 20px 0;
+            font-weight: 500;
+            color: var(--gray);
+            height: 20px;
+        }
+        
+        .text-box {
+            background-color: var(--light);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 30px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .command {
+            color: var(--dark);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .response {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 3px solid var(--primary-light);
+        }
+        
+        .backup-form {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        
+        .backup-form p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .text-input {
+            width: 80%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 1rem;
+            outline: none;
+        }
+        
+        .text-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
+        
+        .submit-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .visualizer {
+            height: 60px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .visualizer-bar {
+            background-color: var(--primary);
+            width: 4px;
+            height: 5px;
+            margin: 0 3px;
+            border-radius: 2px;
+            transition: height 0.2s ease;
+        }
+        
+        .commands-list {
+            background-color: var(--light);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        
+        .commands-list h3 {
+            color: var(--primary);
+            margin-top: 0;
+            font-size: 1.1rem;
+        }
+        
+        .commands-list ul {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        
+        .commands-list li {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                width: 95%;
+                padding: 20px;
+            }
+            
+            .voice-btn {
+                width: 70px;
+                height: 70px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <h1>Voice Assistant</h1>
-    <form method="POST">
-        <input type="text" name="command" placeholder="Type your command here...">
-        <button type="submit">Submit</button>
-    </form>
-    <button onclick="startListening()">Speak Command</button
+    <div class="container">
+        <h1>Voice Assistant</h1>
+        
+        <div class="assistant-icon">
+            <i class="fas fa-microphone-alt mic-icon"></i>
+        </div>
+        
+        <div class="visualizer" id="visualizer">
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+        </div>
+        
+        <div class="status" id="status">Click the microphone to speak</div>
+        
+        <button id="voiceButton" class="voice-btn" onclick="toggleListening()">
+            <i class="fas fa-microphone"></i>
+        </button>
+        
+        <div class="text-box" id="responseBox">
+            <p class="response">Hi there! I'm your voice assistant. How can I help you today?</p>
+        </div>
+        
+        <div class="commands-list">
+            <h3>Try these commands:</h3>
+            <ul>
+                <li>"What time is it?"</li>
+                <li>"What is today's date?"</li>
+                <li>"Open YouTube"</li>
+                <li>"Search for [your query]"</li>
+                <li>"Search for video [video name]"</li>
+                <li>"Read the news"</li>
+                <li>"Call emergency contact"</li>
+            </ul>
+        </div>
+        
+        <div class="backup-form">
+            <p>Voice not working? Type your command instead:</p>
+            <form id="textForm">
+                <input type="text" class="text-input" name="command" id="textCommand" placeholder="Type your command here...">
+                <button type="submit" class="submit-btn">Send</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // Variables for voice recognition
+        let recognition;
+        let isListening = false;
+        let synth = window.speechSynthesis;
+        
+        // Initialize speech recognition if available
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                // Create speech recognition object
+                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+                
+                // Set up event handlers
+                recognition.onstart = function() {
+                    isListening = true;
+                    document.getElementById('status').textContent = 'Listening...';
+                    document.getElementById('voiceButton').classList.add('listening');
+                    animateVisualizer(true);
+                };
+                
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    if (event.results[0].isFinal) {
+                        document.getElementById('status').textContent = 'Processing: "' + transcript + '"';
+                        processCommand(transcript);
+                    }
+                };
+                
+                recognition.onerror = function(event) {
+                    document.getElementById('status').textContent = 'Error: ' + event.error;
+                    stopListening();
+                };
+                
+                recognition.onend = function() {
+                    stopListening();
+                };
+                
+                return true;
+            } else {
+                document.getElementById('status').textContent = 'Speech recognition not supported in this browser';
+                return false;
+            }
+        }
+        
+        // Toggle listening state
+        function toggleListening() {
+            if (!recognition && !initSpeechRecognition()) {
+                return;
+            }
+            
+            if (isListening) {
+                stopListening();
+            } else {
+                startListening();
+            }
+        }
+        
+        // Start listening
+        function startListening() {
+            if (!recognition && !initSpeechRecognition()) {
+                return;
+            }
+            
+            try {
+                recognition.start();
+            } catch (e) {
+                console.error('Speech recognition error:', e);
+            }
+        }
+        
+        // Stop listening
+        function stopListening() {
+            if (recognition) {
+                recognition.stop();
+            }
+            isListening = false;
+            document.getElementById('voiceButton').classList.remove('listening');
+            document.getElementById('status').textContent = 'Click the microphone to speak';
+            animateVisualizer(false);
+        }
+        
+        // Process voice command
+        function processCommand(command) {
+            // Display the user's command
+            addUserCommand(command);
+            
+            // Convert command to lowercase for easier processing
+            const cmd = command.toLowerCase();
+            let response = "I'm not sure how to help with that.";
+            
+            // Time command
+            if (cmd.includes("time")) {
+                const now = new Date();
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                const formattedHours = hours % 12 || 12;
+                const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+                response = `The current time is ${formattedHours}:${formattedMinutes} ${ampm}.`;
+            }
+            
+            // Date command
+            else if (cmd.includes("date") || cmd.includes("day")) {
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const formattedDate = now.toLocaleDateString('en-US', options);
+                response = `Today is ${formattedDate}.`;
+            }
+            
+            // Open YouTube
+            else if (cmd.includes("open youtube")) {
+                response = "Opening YouTube.";
+                window.open("https://www.youtube.com", "_blank");
+            }
+            
+            // Search for videos
+            else if (cmd.includes("search for") && cmd.includes("video")) {
+                const searchQuery = cmd.replace("search for", "").replace("video", "").trim();
+                response = `Searching YouTube for ${searchQuery}.`;
+                const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
+                window.open(youtubeSearchUrl, "_blank");
+            }
+            
+            // General search
+            else if (cmd.includes("search")) {
+                const searchQuery = cmd.replace("search", "").replace("for", "").trim();
+                response = `Searching for ${searchQuery}.`;
+                const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+                window.open(googleSearchUrl, "_blank");
+            }
+            
+            // Read news
+            else if (cmd.includes("read") && cmd.includes("news")) {
+                response = "Here are the latest headlines. Opening a news website.";
+                window.open("https://news.google.com", "_blank");
+            }
+            
+            // Call emergency contact (simulated)
+            else if (cmd.includes("call emergency contact")) {
+                response = "This is a simulated emergency contact call. In a real application, this would initiate a call to your emergency contact.";
+            }
+            
+            // Add response after a short delay
+            setTimeout(() => {
+                addResponse(response);
+                speak(response);
+            }, 500);
+        }
+        
+        // Add user command to the text box
+        function addUserCommand(text) {
+            const responseBox = document.getElementById('responseBox');
+            const commandElement = document.createElement('p');
+            commandElement.textContent = `You: ${text}`;
+            commandElement.className = 'command';
+            responseBox.appendChild(commandElement);
+            responseBox.scrollTop = responseBox.scrollHeight;
+        }
+        
+        // Add response to the text box
+        function addResponse(text) {
+            const responseBox = document.getElementById('responseBox');
+            const responseElement = document.createElement('p');
+            responseElement.textContent = `Assistant: ${text}`;
+            responseElement.className = 'response';
+            responseBox.appendChild(responseElement);
+            responseBox.scrollTop = responseBox.scrollHeight;
+        }
+        
+        // Text-to-speech function
+        function speak(text) {
+            if (synth) {
+                // Cancel any ongoing speech
+                synth.cancel();
+                
+                // Create a new utterance
+                const utterance = new SpeechSynthesisUtterance(text);
+                
+                // Optional: configure voice properties
+                utterance.volume = 1; // 0 to 1
+                utterance.rate = 1; // 0.1 to 10
+                utterance.pitch = 1; // 0 to 2
+                
+                // Speak the text
+                synth.speak(utterance);
+            }
+        }
+        
+        // Animate voice visualizer
+        function animateVisualizer(active) {
+            const bars = document.querySelectorAll('.visualizer-bar');
+            
+            if (active) {
+                // Start animation
+                bars.forEach(bar => {
+                    animateBar(bar);
+                });
+            } else {
+                // Reset bars
+                bars.forEach(bar => {
+                    bar.style.height = '5px';
+                });
+            }
+        }
+        
+        // Animate individual visualizer bar
+        function animateBar(bar) {
+            if (!isListening) return;
+            
+            const height = Math.floor(Math.random() * 30) + 5;
+            bar.style.height = height + 'px';
+            
+            // Continue animation
+            setTimeout(() => {
+                if (isListening) {
+                    animateBar(bar);
+                }
+            }, 100 + Math.random() * 200);
+        }
+        
+        // Handle text form submission
+        document.getElementById('textForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const command = document.getElementById('textCommand').value.trim();
+            if (command) {
+                document.getElementById('status').textContent = 'Processing: "' + command + '"';
+                processCommand(command);
+                document.getElementById('textCommand').value = '';
+            }
+        });
+        
+        // Initialize on page load
+        window.onload = function() {
+            initSpeechRecognition();
+            speak("Hi there! I'm your voice assistant. How can I help you today?");
+        };
+    </script>
+</body>
+</html>
