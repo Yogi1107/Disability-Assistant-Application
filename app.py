@@ -4,11 +4,15 @@ import json
 import datetime
 import pywhatkit
 import webbrowser
+<<<<<<< HEAD
 import speech_recognition as sr
 import pyttsx3
+=======
+import secrets
+>>>>>>> bee7e37dbce93766b3328cee2faf44ff6462d5de
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Required for flashing messages
+app.secret_key = secrets.token_hex(16)  # Secure secret key for flashing messages
 
 # Initialize text-to-speech engine
 engine = pyttsx3.init()
@@ -19,8 +23,12 @@ current_question_index = 0
 # Initialize user profile system
 def init_user_profile():
     """Initialize user profile system"""
-    if not os.path.exists('user_profiles'):
-        os.makedirs('user_profiles')
+    try:
+        if not os.path.exists('user_profiles'):
+            os.makedirs('user_profiles')
+    except Exception as e:
+        print(f"Error creating user_profiles directory: {e}")
+        return None
     
     current_user_id = "default_user"
     user_profile = get_user_profile(current_user_id)
@@ -32,9 +40,13 @@ def get_user_profile(user_id):
         with open(profile_path, 'r') as f:
             return json.load(f)
     
-    return {
+    user_data = {
         'user_id': user_id,
+<<<<<<< HEAD
         'name': 'User            ',
+=======
+        'name': 'User',
+>>>>>>> bee7e37dbce93766b3328cee2faf44ff6462d5de
         'preferences': {
             'voice_speed': 1.0,
             'voice_volume': 1.0,
@@ -45,6 +57,17 @@ def get_user_profile(user_id):
         'custom_gestures': {},
         'emergency_contacts': []
     }
+
+    save_user_profile(user_data)  # Save profile if it doesn't exist
+    return user_data
+
+def save_user_profile(user_profile):
+    """Save user profile to JSON file"""
+    try:
+        with open(f'user_profiles/{user_profile["user_id"]}.json', 'w') as f:
+            json.dump(user_profile, f)
+    except Exception as e:
+        print(f"Error saving user profile: {e}")
 
 @app.route('/')
 def index():
@@ -172,21 +195,19 @@ def sign_detection():
 def settings():
     user_profile = init_user_profile()
     if request.method == 'POST':
-        user_profile['preferences']['voice_speed'] = float(request.form.get('voice_speed'))
-        user_profile['preferences']['voice_volume'] = float(request.form.get('voice_volume'))
-        user_profile['preferences']['theme'] = request.form.get('theme')
-        user_profile['preferences']['font_size'] = request.form.get('font_size')
-        
-        # Save the updated profile
-        save_user_profile(user_profile)
-        flash('Settings have been saved successfully!')
+        try:
+            user_profile['preferences']['voice_speed'] = float(request.form.get('voice_speed'))
+            user_profile['preferences']['voice_volume'] = float(request.form.get('voice_volume'))
+            user_profile['preferences']['theme'] = request.form.get('theme')
+            user_profile['preferences']['font_size'] = request.form.get('font_size')
+
+            save_user_profile(user_profile)
+            flash('Settings have been saved successfully!')
+        except Exception as e:
+            flash(f"Error saving settings: {e}", 'error')
         return redirect(url_for('settings'))
     
     return render_template('settings.html', user_profile=user_profile)
-
-def save_user_profile(user_profile):
-    with open(f'user_profiles/{user_profile["user_id"]}.json', 'w') as f:
-        json.dump(user_profile, f)
 
 def process_voice_command(command):
     """Process a voice command"""
@@ -207,7 +228,10 @@ def process_voice_command(command):
     elif "search for" in command and "video" in command:
         search_query = command.replace("search for", "").replace("video", "").strip()
         response = f"Searching YouTube for {search_query}."
-        pywhatkit.playonyt(search_query)
+        try:
+            pywhatkit.playonyt(search_query)
+        except Exception as e:
+            response = f"Could not search on YouTube: {e}"
         return response  # Return early since we are opening a new page
     
     elif "search" in command:
@@ -221,8 +245,8 @@ def process_voice_command(command):
     
     elif "call emergency contact" in command:
         user_profile = init_user_profile()
-        if user_profile['emergency_contacts']:
-            contact = user_profile['emergency_contacts'][0]  # Just an example
+        if user_profile and user_profile.get('emergency_contacts'):
+            contact = user_profile['emergency_contacts'][0]  # Example: Call first contact
             response = f"Calling {contact}."
             # Here you would implement the actual calling functionality
         else:
@@ -251,4 +275,8 @@ def listen():
             return "Could not request results from Google Speech Recognition service."
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     app.run(debug=True, port='5001')
+=======
+    app.run(debug=True, port=5001)  # Run Flask on port 5001
+>>>>>>> bee7e37dbce93766b3328cee2faf44ff6462d5de
