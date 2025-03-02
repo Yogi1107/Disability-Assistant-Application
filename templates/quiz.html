@@ -3,222 +3,940 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Feature</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>Accessible Quiz Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
+        /* CSS styles as previously defined */
+        :root {
+            --primary: #6200ea;
+            --primary-light: #9d46ff;
+            --primary-dark: #0a00b6;
+            --secondary: #00bcd4;
+            --secondary-light: #62efff;
+            --secondary-dark: #008ba3;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --light: #f5f5f5;
+            --dark: #212121;
+            --text: #37474f;
+            --background: #f8f9fa;
         }
-        h1 {
-            color: #333;
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(120deg, var(--primary-light) 0%, var(--primary) 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        header {
+            background-color: var(--primary);
+            padding: 25px 30px;
+            color: white;
             text-align: center;
         }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
         }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        
+        .tab-btn {
+            padding: 12px 25px;
+            background-color: var(--light);
+            color: var(--text);
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 5px 15px rgba(98, 0, 234, 0.3);
+        }
+        
+        .tab-btn:hover:not(.active) {
+            background-color: var(--primary-light);
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 25px;
         }
+        
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
         }
+        
         input[type="text"] {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #28a745;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
             font-size: 16px;
+            transition: all 0.3s;
         }
-        button:hover {
-            background-color: #218838;
+        
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(98, 0, 234, 0.2);
+            outline: none;
         }
-        #quiz-container {
-            display: none; /* Initially hide the quiz container */
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 10px;
         }
-        ul {
-            list-style-type: none;
-            padding: 0;
+        
+        .options-grid input {
+            border-radius: 8px;
         }
-        li {
-            padding: 10px;
-            background: #e9ecef;
-            margin: 5px 0;
-            border-radius: 4px;
+        
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-right: 10px;
+            margin-bottom: 10px;
         }
-        li:hover {
-            background: #d3d3d3;
+        
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+        }
+        
+        #question-list {
+            margin-top: 30px;
+        }
+        
+        .question-card {
+            background-color: var(--light);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        
+        .question-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-3px);
+        }
+        
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .question-options {
+            padding-left: 20px;
+        }
+        
+        .question-options li {
+            margin-bottom: 5px;
+        }
+        
+        /* Quiz taking section */
+        #quiz-question {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: rgba(98, 0, 234, 0.1);
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .quiz-options {
+            margin-bottom: 30px;
+        }
+        
+        .option-item {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .option-item:hover {
+            background-color: #e3f2fd;
+            transform: translateX(5px);
+        }
+        
+        .option-item.selected {
+            background-color: var(--primary-light);
+            color: white;
+        }
+        
+        .option-letter {
+            background-color: var(--primary);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+        
+        .option-text {
+            font-size: 18px;
+            flex-grow: 1;
+        }
+        
+        .voice-controls {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .voice-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .voice-commands {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .voice-command {
+            background-color: white;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .command-icon {
+            width: 30px;
+            height: 30px;
+            background-color: rgba(98, 0, 234, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+        
+        .progress-container {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+            width: 0;
+            transition: width 0.5s ease;
+        }
+        
+        #quiz-feedback {
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .feedback-correct {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #2e7d32;
+        }
+        
+        .feedback-incorrect {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #c62828;
+        }
+        
+        #listening-indicator {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px;
+            background-color: #e0f7fa;
+            border-radius: 10px;
+            margin-top: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        .wave {
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .wave .bar {
+            background: var(--primary);
+            width: 3px;
+            height: 8px;
+            border-radius: 3px;
+            margin: 0 2px;
+            animation: sound 0ms -800ms linear infinite alternate;
+        }
+        
+        @keyframes sound {
+            0% { height: 3px; }
+            100% { height: 15px; }
+        }
+        
+        .wave .bar:nth-child(1) { animation-duration: 474ms; }
+        .wave .bar:nth-child(2) { animation-duration: 433ms; }
+        .wave .bar:nth-child(3) { animation-duration: 407ms; }
+        .wave .bar:nth-child(4) { animation-duration: 458ms; }
+        .wave .bar:nth-child(5) { animation-duration: 400ms; }
+        .wave .bar:nth-child(6) { animation-duration: 427ms; }
+        .wave .bar:nth-child(7) { animation-duration: 441ms; }
+        .wave .bar:nth-child(8) { animation-duration: 419ms; }
+        
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Quiz Feature</h1>
-
-        <!-- Navigation for Quiz Sub-Features -->
-        <div>
-            <button onclick="showCreateQuiz()">Create Quiz</button>
-            <button onclick="showStartQuiz()">Start Quiz</button>
-        </div>
-
-        <!-- Create Quiz Section -->
-        <div id="create-quiz">
-            <h2>Create a Quiz</h2>
-            <form id="quiz-form" method="POST">
-                <div class="form-group">
-                    <label for="question">Question:</label>
-                    <input type="text" id="question" name="question" required>
-                </div>
-                <div class="form-group">
-                    <label for="options">Options (A, B, C, D):</label>
-                    <input type="text" name="options" placeholder="Option A" required>
-                    <input type="text" name="options" placeholder="Option B" required>
-                    <input type="text" name="options" placeholder="Option C" required>
-                    <input type="text" name="options" placeholder="Option D" required>
-                </div>
-                <button type="button" onclick="addQuestion()">Add Another Question</button>
-                <button type="submit" name="create_quiz">Create Quiz</button>
-            </form>
-        </div>
-
-        <!-- Start Quiz Section -->
-        <div id="quiz-container">
-            <h2>Start Quiz</h2>
-            <div id="quiz-content">
-                <p id="quiz-question"></p>
-                <div id="quiz-options"></div>
+        <header>
+            <h1>Accessible Quiz Platform</h1>
+            <p class="subtitle">Interactive voice-enabled quizzes for all students</p>
+        </header>
+        
+        <div class="content">
+            <div class="tab-buttons">
+                <button id="create-tab-btn" class="tab-btn active" onclick="switchTab('create')">
+                    <i class="fas fa-edit"></i> Create Quiz
+                </button>
+                <button id="take-tab-btn" class="tab-btn" onclick="switchTab('take')">
+                    <i class="fas fa-play"></i> Take Quiz
+                </button>
             </div>
-            <button onclick="startQuiz()">Start Quiz</button>
-            <button onclick="submitAnswer()">Submit Answer</button>
-            <p id="quiz-feedback"></p> <!-- Feedback message will be displayed here -->
+            
+            <!-- Create Quiz Tab -->
+            <div id="create-tab" class="tab-content active">
+                <h2>Create a New Quiz</h2>
+                <p>Design quiz questions with multiple-choice options for your students.</p>
+                
+                <form id="quiz-form">
+                    <div class="form-group">
+                        <label for="quiz-title">Quiz Title:</label>
+                        <input type="text" id="quiz-title" name="quiz-title" placeholder="Enter quiz title" required>
+                    </div>
+                    
+                    <div id="question-container">
+                        <div class="form-group">
+                            <label for="question">Question 1:</label>
+                            <input type="text" id="question" name="question" placeholder="Enter your question" required>
+                            
+                            <label>Options:</label>
+                            <div class="options-grid">
+                                <input type="text" name="option-a" placeholder="Option A" required>
+                                <input type="text" name="option-b" placeholder="Option B" required>
+                                <input type="text" name="option-c" placeholder="Option C" required>
+                                <input type="text" name="option-d" placeholder="Option D" required>
+                            </div>
+                            
+                            <label for="correct-answer">Correct Answer:</label>
+                            <select id="correct-answer" name="correct-answer" required>
+                                <option value="A">Option A</option>
+                                <option value="B">Option B</option>
+                                <option value="C">Option C</option>
+                                <option value="D">Option D</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-secondary" id="add-question-btn">
+                        <i class="fas fa-plus"></i> Add Another Question
+                    </button>
+                    
+                    <button type="submit" class="btn">
+                        <i class="fas fa-save"></i> Save Quiz
+                    </button>
+                </form>
+                
+                <div id="question-list">
+                    <h3>Saved Questions</h3>
+                    <!-- Questions will be dynamically added here -->
+                </div>
+            </div>
+            
+            <!-- Take Quiz Tab -->
+            <div id="take-tab" class="tab-content">
+                <h2>Take Quiz</h2>
+                <p>Listen to questions and respond using voice commands.</p>
+                
+                <div class="progress-container">
+                    <div class="progress-bar" id="quiz-progress"></div>
+                </div>
+                
+                <div id="quiz-content">
+                    <div id="quiz-question">
+                        Press "Start Quiz" to begin
+                    </div>
+                    
+                    <div class="quiz-options">
+                        <div class="option-item" data-option="A">
+                            <div class="option-letter">A</div>
+                            <div class="option-text">First option will appear here</div>
+                        </div>
+                        <div class="option-item" data-option="B">
+                            <div class="option-letter">B</div>
+                            <div class="option-text">Second option will appear here</div>
+                        </div>
+                        <div class="option-item" data-option="C">
+                            <div class="option-letter">C</div>
+                            <div class="option-text">Third option will appear here</div>
+                        </div>
+                        <div class="option-item" data-option="D">
+                            <div class="option-letter">D</div>
+                            <div class="option-text">Fourth option will appear here</div>
+                        </div>
+                    </div>
+                    
+                    <div id="quiz-feedback">
+                        Feedback will appear here
+                    </div>
+                    
+                    <div id="listening-indicator">
+                        <i class="fas fa-microphone"></i> Listening...
+                        <div class="wave">
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="voice-controls">
+                        <div class="voice-title">
+                            <i class="fas fa-microphone-alt"></i> Voice Commands
+                        </div>
+                        <div class="voice-commands">
+                            <div class="voice-command">
+                                <div class="command-icon">1</div>
+                                <div>"Repeat question"</div>
+                            </div>
+                            <div class="voice-command">
+                                <div class="command-icon">2</div>
+                                <div>"Repeat options"</div>
+                            </div>
+                            <div class="voice-command">
+                                <div class="command-icon">3</div>
+                                <div>"Option A/B/C/D"</div>
+                            </div>
+                            <div class="voice-command">
+                                <div class="command-icon">4</div>
+                                <div>"Yes/No" to proceed</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="start-quiz-btn" class="btn">
+                        <i class="fas fa-play"></i> Start Quiz
+                    </button>
+                </div>
+            </div>
         </div>
-
-        <br>
-        <a href="{{ url_for('index') }}">Back to Home</a>
     </div>
 
     <script>
+        // Global variables
         let currentQuestionIndex = 0;
         let quizData = [];
-
-        function showCreateQuiz() {
-            document.getElementById('create-quiz').style.display = 'block';
-            document.getElementById('quiz-container').style.display = 'none';
-        }
-
-        function showStartQuiz() {
-            document.getElementById('create-quiz').style.display = 'none';
-            document.getElementById('quiz-container').style.display = 'block';
-        }
-
-        function addQuestion() {
-            const questionInput = document.getElementById('question');
-            const optionsInputs = document.querySelectorAll('input[name="options"]');
-            const options = Array.from(optionsInputs).map(input => input.value);
-
-            if (questionInput.value && options.every(opt => opt)) {
-                // Create a new question form
-                const newQuestionDiv = document.createElement('div');
-                newQuestionDiv.classList.add('form-group');
-                newQuestionDiv.innerHTML = `
-                    <label for="question">Question:</label>
-                    <input type="text" name="question" required>
-                    <label for="options">Options (A, B, C, D):</label>
-                    <input type="text" name="options" placeholder="Option A" required>
-                    <input type="text" name="options" placeholder="Option B" required>
-                    <input type="text" name="options" placeholder="Option C" required>
-                    <input type="text" name="options" placeholder="Option D" required>
-                `;
-                document.getElementById('quiz-form').insertBefore(newQuestionDiv, document.getElementById('quiz-form').lastChild);
-                questionInput.value = ''; // Clear the question input
-                optionsInputs.forEach(input => input.value = ''); // Clear the options inputs
+        let questionCount = 1;
+        let recognition;
+        let isListening = false;
+        let awaitingNextConfirmation = false;
+        
+        // Initialize speech recognition if available
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript.toLowerCase().trim();
+                    processVoiceCommand(transcript);
+                    document.getElementById('listening-indicator').style.display = 'none';
+                };
+                
+                recognition.onend = function() {
+                    if (isListening) {
+                        recognition.start();
+                    }
+                };
+                
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error', event.error);
+                    document.getElementById('listening-indicator').style.display = 'none';
+                };
             } else {
-                alert("Please fill in the question and all options before adding another question.");
+                alert('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
             }
         }
-
-        function startQuiz() {
-            fetch('/start_quiz')
-                .then(response => response.json())
-                .then(data => {
-                    quizData = data; // Store the quiz data
-                    currentQuestionIndex = 0; // Reset question index
-                    displayQuestion();
-                });
-        }
-
-        function displayQuestion() {
-            if (currentQuestionIndex < quizData.length) {
-                const question = quizData[currentQuestionIndex].question;
-                const options = quizData[currentQuestionIndex].options;
-
-                document.getElementById('quiz-question').innerText = question;
-                const optionsDiv = document.getElementById('quiz-options');
-                optionsDiv.innerHTML = '';
-
-                options.forEach((option, index) => {
-                    const radio = document.createElement('input');
-                    radio.type = 'radio';
-                    radio.name = 'quiz-option';
-                    radio.value = String.fromCharCode(65 + index); // A, B, C, D
-                    const label = document.createElement('label');
-                    label.innerText = option;
-                    optionsDiv.appendChild(radio);
-                    optionsDiv.appendChild(label);
-                    optionsDiv.appendChild(document.createElement('br'));
-                });
-
-                speak(question + " " + options.join(", ")); // Speak the question and options
-            } else {
-                alert("Quiz completed!");
-                // Optionally, you can reset or redirect to another page
+        
+        // Process voice commands
+        function processVoiceCommand(command) {
+            console.log('Voice command:', command);
+            
+            if (command.includes('repeat question')) {
+                speakText(document.getElementById('quiz-question').textContent);
+            }
+            else if (command.includes('repeat options')) {
+                speakOptions();
+            }
+            else if (command.includes('option a') || command.match(/\ba\b/)) {
+                selectOption('A');
+            }
+            else if (command.includes('option b') || command.match(/\bb\b/)) {
+                selectOption('B');
+            }
+            else if (command.includes('option c') || command.match(/\bc\b/)) {
+                selectOption('C');
+            }
+            else if (command.includes('option d') || command.match(/\bd\b/)) {
+                selectOption('D');
+            }
+            else if (awaitingNextConfirmation && (command.includes('yes') || command.match(/\byes\b/))) {
+                awaitingNextConfirmation = false;
+                goToNextQuestion();
+            }
+            else if (awaitingNextConfirmation && (command.includes('no') || command.match(/\bno\b/))) {
+                awaitingNextConfirmation = false;
+                speakText('Staying on current question. Say "repeat question" or "repeat options" if needed.');
             }
         }
-
-        function submitAnswer() {
-            const selectedOption = document.querySelector('input[name="quiz-option"]:checked');
-            if (!selectedOption) {
-                alert("Please select an option before submitting.");
-                return;
+        
+        // Switch between tabs
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            document.getElementById(tabName + '-tab-btn').classList.add('active');
+            
+            // Stop speech recognition when switching to create tab
+            if (tabName === 'create' && isListening) {
+                stopListening();
             }
-
-            const answer = selectedOption.value; // Get the selected answer
-            fetch('/quiz_command', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ command: 'option ' + answer })
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('quiz-feedback').innerText = data.response; // Display feedback
-                speak(data.response); // Speak the feedback
-                if (data.next_question) {
-                    currentQuestionIndex++; // Increment the question index
-                    displayQuestion(); // Display the next question if available
-                } else {
-                    alert("Quiz completed!"); // Notify the user that the quiz is completed
+        }
+        
+        // Text-to-speech function
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9; // Slightly slower rate for better comprehension
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+        
+        // Speak all options
+        function speakOptions() {
+            const options = document.querySelectorAll('.option-item');
+            let optionsText = 'The options are: ';
+            
+            options.forEach(option => {
+                const letter = option.getAttribute('data-option');
+                const text = option.querySelector('.option-text').textContent;
+                optionsText += 'Option ' + letter + ': ' + text + '. ';
+            });
+            
+            speakText(optionsText);
+        }
+        
+        // Start listening for voice commands
+        function startListening() {
+            if (recognition) {
+                isListening = true;
+                document.getElementById('listening-indicator').style.display = 'flex';
+                recognition.start();
+            }
+        }
+        
+        // Stop listening
+        function stopListening() {
+            if (recognition) {
+                isListening = false;
+                document.getElementById('listening-indicator').style.display = 'none';
+                recognition.stop();
+            }
+        }
+        
+        // Select an option via voice command
+        function selectOption(letter) {
+            // Highlight the selected option
+            document.querySelectorAll('.option-item').forEach(option => {
+                option.classList.remove('selected');
+                if (option.getAttribute('data-option') === letter) {
+                    option.classList.add('selected');
                 }
             });
+            
+            // Provide feedback (this would normally be checked against the correct answer)
+            const feedback = 'You selected option ' + letter + '. Do you want to proceed to the next question? Say yes or no.';
+            speakText(feedback);
+            
+            const feedbackElement = document.getElementById('quiz-feedback');
+            feedbackElement.textContent = feedback;
+            feedbackElement.className = '';
+            feedbackElement.style.display = 'block';
+            
+            awaitingNextConfirmation = true;
         }
+        
+        // Go to next question
+        function goToNextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < quizData.length) {
+                displayQuestion();
+            } else {
+                // Quiz completed
+                document.getElementById('quiz-question').textContent = 'Quiz completed!';
+                document.querySelectorAll('.option-item').forEach(option => {
+                    option.style.display = 'none';
+                });
+                speakText('Quiz completed! Thank you for participating.');
+                stopListening();
+            }
+        }
+        
+        // Display current question
+        function displayQuestion() {
+            const currentQuestion = quizData[currentQuestionIndex];
+            document.getElementById('quiz-question').textContent = currentQuestion.question;
+            
+            const options = document.querySelectorAll('.option-item');
+            
+            options[0].querySelector('.option-text').textContent = currentQuestion.options[0];
+            options[1].querySelector('.option-text').textContent = currentQuestion.options[1];
+            options[2].querySelector('.option-text').textContent = currentQuestion.options[2];
+            options[3].querySelector('.option-text').textContent = currentQuestion.options[3];
+            
+            // Reset selected state
+            options.forEach(option => {
+                option.classList.remove('selected');
+                option.style.display = 'flex';
+            });
+            
+            // Update progress bar
+            document.getElementById('quiz-progress').style.width = 
+                ((currentQuestionIndex + 1) / quizData.length * 100) + '%';
+            
+            // Hide feedback
+            document.getElementById('quiz-feedback').style.display = 'none';
+            
+            // Speak the question and options
+            setTimeout(() => {
+                speakText('Question ' + (currentQuestionIndex + 1) + ': ' + currentQuestion.question);
+                setTimeout(() => {
+                    speakOptions();
+                }, 1500);
+            }, 500);
+        }
+        
+        // Add a new question in the create quiz form
+        function addQuestion() {
+            questionCount++;
+            const questionContainer = document.getElementById('question-container');
+            
+            const newQuestionDiv = document.createElement('div');
+            newQuestionDiv.classList.add('form-group');
+            newQuestionDiv.innerHTML = `
+                <hr style="margin: 20px 0;">
+                <label for="question-${questionCount}">Question ${questionCount}:</label>
+                <input type="text" id="question-${questionCount}" name="question" placeholder="Enter your question" required>
+                
+                <label>Options:</label>
+                <div class="options-grid">
+                    <input type="text" name="option-a" placeholder="Option A" required>
+                    <input type="text" name="option-b" placeholder="Option B" required>
+                    <input type="text" name="option-c" placeholder="Option C" required>
+                    <input type="text" name="option-d" placeholder="Option D" required>
+                </div>
+                
+                <label for="correct-answer-${questionCount}">Correct Answer:</label>
+                <select id="correct-answer-${questionCount}" name="correct-answer" required>
+                    <option value="A">Option A</option>
+                    <option value="B">Option B</option>
+                    <option value="C">Option C</option>
+                    <option value="D">Option D</option>
+                </select>
+            `;
+            
+            questionContainer.appendChild(newQuestionDiv);
+        }
+        
+        // Save quiz (demo functionality)
+        function saveQuiz(event) {
+            event.preventDefault();
+            
+            // Get quiz title
+            const quizTitle = document.getElementById('quiz-title').value;
+            
+            // Get all questions
+            const questionInputs = document.querySelectorAll('input[name="question"]');
+            const optionAs = document.querySelectorAll('input[name="option-a"]');
+            const optionBs = document.querySelectorAll('input[name="option-b"]');
+            const optionCs = document.querySelectorAll('input[name="option-c"]');
+            const optionDs = document.querySelectorAll('input[name="option-d"]');
+            const correctAnswers = document.querySelectorAll('select[name="correct-answer"]');
+            
+            // Create saved questions list
+            const questionList = document.getElementById('question-list');
+            questionList.innerHTML = '<h3>Saved Questions for "' + quizTitle + '"</h3>';
+            
+            for (let i = 0; i < questionInputs.length; i++) {
+                const questionCard = document.createElement('div');
+                questionCard.classList.add('question-card');
+                
+                questionCard.innerHTML = `
+                    <div class="question-text">Q${i+1}: ${questionInputs[i].value}</div>
+                    <ul class="question-options">
+                        <li>A: ${optionAs[i].value} ${correctAnswers[i].value === 'A' ? '✓' : ''}</li>
+                        <li>B: ${optionBs[i].value} ${correctAnswers[i].value === 'B' ? '✓' : ''}</li>
+                        <li>C: ${optionCs[i].value} ${correctAnswers[i].value === 'C' ? '✓' : ''}</li>
+                        <li>D: ${optionDs[i].value} ${correctAnswers[i].value === 'D' ? '✓' : ''}</li>
+                    </ul>
+                `;
+
+                questionList.appendChild(questionCard);
+            }
+            
+            // Reset the form after saving
+            document.getElementById('quiz-form').reset();
+            questionCount = 1; // Reset question count
+        }
+
+        // Event listeners for buttons
+        document.getElementById('add-question-btn').addEventListener('click', addQuestion);
+        document.getElementById('quiz-form').addEventListener('submit', saveQuiz);
+        document.getElementById('start-quiz-btn').addEventListener('click', startQuiz);
+        
+        // Initialize speech recognition
+        initSpeechRecognition();
+
+        // Add this function to the existing JavaScript section at the bottom of the file
+
+// Start the quiz
+function startQuiz() {
+    // Check if we have quiz data
+    const questionList = document.querySelectorAll('.question-card');
+    
+    if (questionList.length === 0) {
+        alert('Please create a quiz first before starting.');
+        switchTab('create');
+        return;
+    }
+    
+    // Reset quiz state
+    currentQuestionIndex = 0;
+    quizData = [];
+    
+    // Extract quiz data from the saved questions
+    questionList.forEach(card => {
+        const questionText = card.querySelector('.question-text').textContent;
+        const questionOnly = questionText.substring(questionText.indexOf(':') + 1).trim();
+        
+        const optionElements = card.querySelectorAll('.question-options li');
+        let options = [];
+        let correctAnswer = '';
+        
+        optionElements.forEach(option => {
+            const optionText = option.textContent;
+            const letter = optionText.substring(0, 1);
+            const text = optionText.substring(2, optionText.indexOf('✓') > 0 ? optionText.indexOf('✓') - 1 : optionText.length).trim();
+            
+            options.push(text);
+            
+            // Check if this is the correct answer
+            if (optionText.includes('✓')) {
+                correctAnswer = letter;
+            }
+        });
+        
+        quizData.push({
+            question: questionOnly,
+            options: options,
+            correctAnswer: correctAnswer
+        });
+    });
+    
+    // Hide start button and show the first question
+    document.getElementById('start-quiz-btn').style.display = 'none';
+    
+    // Start listening for voice commands
+    startListening();
+    
+    // Display the first question
+    displayQuestion();
+}
+
+// Modify the selectOption function to check for correct answers
+function selectOption(letter) {
+    // Highlight the selected option
+    document.querySelectorAll('.option-item').forEach(option => {
+        option.classList.remove('selected');
+        if (option.getAttribute('data-option') === letter) {
+            option.classList.add('selected');
+        }
+    });
+    
+    // Check if the answer is correct
+    const currentQuestion = quizData[currentQuestionIndex];
+    const isCorrect = letter === currentQuestion.correctAnswer;
+    
+    // Provide feedback
+    const feedbackElement = document.getElementById('quiz-feedback');
+    
+    if (isCorrect) {
+        feedbackElement.textContent = 'Correct! Do you want to proceed to the next question? Say yes or no.';
+        feedbackElement.className = 'feedback-correct';
+        speakText('Correct! Do you want to proceed to the next question? Say yes or no.');
+    } else {
+        feedbackElement.textContent = 'Incorrect. The correct answer is option ' + currentQuestion.correctAnswer + '. Do you want to proceed to the next question? Say yes or no.';
+        feedbackElement.className = 'feedback-incorrect';
+        speakText('Incorrect. The correct answer is option ' + currentQuestion.correctAnswer + '. Do you want to proceed to the next question? Say yes or no.');
+    }
+    
+    feedbackElement.style.display = 'block';
+    awaitingNextConfirmation = true;
+}
+
     </script>
 </body>
 </html>
