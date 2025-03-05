@@ -19,48 +19,37 @@ The Disability Assistant Application is a comprehensive tool designed to assist 
 - **SpeechRecognition**: For processing voice commands.
 - **pyttsx3**: For text-to-speech functionality.
 - **pywhatkit**: For performing actions like searching on YouTube.
+- **Pillow**: For image processing tasks.
 
 ## Installation
 To run the Disability Assistant Application, follow these steps:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/disability-assistant-app.git
-   cd disability-assistant-app
-   ```
+   git clone https://github.com/Yogi1107/Disability-Assistant-Application.git
+   cd Disability-Assistant-Application
+Install the required packages: Ensure you have Python installed, then install the necessary libraries using pip:
 
-2. **Install the required packages**:
-   Make sure you have Python installed, then install the necessary libraries using pip:
-   ```bash
-   pip install opencv-python mediapipe pyttsx3 SpeechRecognition pywhatkit Pillow
-   ```
+```bash
+pip install opencv-python mediapipe pyttsx3 SpeechRecognition pywhatkit Pillow
+```
 
-3. **Run the application**:
-   Execute the following command to start the application:
-   ```bash
-   python main.py
-   ```
+Run the application: Execute the following command to start the application:
+```bash
+python main.py
+```
 
-## Usage
-- Upon launching the application, users will be greeted with a welcome message.
-- Users can navigate through the main features using the buttons provided.
-- The voice assistant can be activated to listen for commands, and users can interact with the application using their voice.
-- The sign detection feature will utilize the webcam to recognize hand gestures and provide feedback.
-
-## Customization
+##Usage
+Upon launching the application, users will be greeted with a welcome message.
+Users can navigate through the main features using the buttons provided.
+The voice assistant can be activated to listen for commands, and users can interact with the application using their voice.
+The sign detection feature will utilize the webcam to recognize hand gestures and provide feedback.
+Customization
 Users can customize their profiles by accessing the settings menu, where they can adjust voice speed, volume, theme, and manage emergency contacts.
 
-## Contributing
+##Contributing
 Contributions are welcome! If you have suggestions for improvements or new features, feel free to open an issue or submit a pull request.
 
-## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-- Thanks to the developers of the libraries used in this project, including OpenCV, MediaPipe, and others.
-- Special thanks to the community for their support and contributions to accessibility technologies.
-
-### Notes:
-- Replace `https://github.com/yourusername/disability-assistant-app.git` with the actual URL of your repository.
-- Update the contact email with your actual email address.
-- You can add or modify sections based on your specific needs or additional features of the application.
+##Acknowledgments
+Thanks to the developers of the libraries used in this project, including OpenCV, MediaPipe, and others.
+Special thanks to the community for their support and contributions to accessibility technologies.
