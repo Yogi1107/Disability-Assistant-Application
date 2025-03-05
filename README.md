@@ -39,7 +39,7 @@ Run the application: Execute the following command to start the application:
 python main.py
 ```
 
-##Usage
+## Usage
 Upon launching the application, users will be greeted with a welcome message.
 Users can navigate through the main features using the buttons provided.
 The voice assistant can be activated to listen for commands, and users can interact with the application using their voice.
@@ -47,9 +47,9 @@ The sign detection feature will utilize the webcam to recognize hand gestures an
 Customization
 Users can customize their profiles by accessing the settings menu, where they can adjust voice speed, volume, theme, and manage emergency contacts.
 
-##Contributing
+## Contributing
 Contributions are welcome! If you have suggestions for improvements or new features, feel free to open an issue or submit a pull request.
 
-##Acknowledgments
+## Acknowledgments
 Thanks to the developers of the libraries used in this project, including OpenCV, MediaPipe, and others.
 Special thanks to the community for their support and contributions to accessibility technologies.
