@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Roboto', sans-serif;
-    background-color: #f0f0f0;
+    background: linear-gradient(135deg, #f0f0f0 0%, #e0e7ff 100%);
     color: #333;
 }
 
@@ -15,10 +15,13 @@ header {
     padding: 20px;
     text-align: center;
     color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 h1 {
     font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 main {
@@ -33,25 +36,30 @@ main {
 
 .feature-card {
     background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
     padding: 20px;
     text-align: center;
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
 }
 
 .feature-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
 }
 
 .feature-card h2 {
     font-size: 1.5em;
     margin-bottom: 10px;
+    color: #4a7abc;
 }
 
 .feature-card p {
     font-size: 1em;
     margin-bottom: 20px;
+    color: #555;
 }
 
 .feature-card button {
@@ -62,19 +70,45 @@ main {
     padding: 10px 20px;
     cursor: pointer;
     font-size: 1em;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.2s;
 }
 
 .feature-card button:hover {
     background-color: #3a5a8c;
+    transform: scale(1.05);
 }
 
 footer {
     background-color: #333;
     color: white;
     text-align: center;
-    padding: 10px;
+    padding: 15px;
     position: relative;
     bottom: 0;
     width: 100%;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Additional styles for responsiveness */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2em;
+    }
+
+    .feature-card {
+        padding: 15px;
+    }
+
+    .feature-card h2 {
+        font-size: 1.3em;
+    }
+
+    .feature-card p {
+        font-size: 0.9em;
+    }
+
+    .feature-card button {
+        padding: 8px 16px;
+        font-size: 0.9em;
+    }
 }
