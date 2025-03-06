@@ -437,6 +437,7 @@
                 <h2>Create a New Quiz</h2>
                 <p>Design quiz questions with multiple-choice options for your students.</p>
                 
+                <br><br>
                 <form id="quiz-form">
                     <div class="form-group">
                         <label for="quiz-title">Quiz Title:</label>
@@ -624,7 +625,7 @@
                 selectOption('D');
             }
             else if (awaitingNextConfirmation && (command.includes('yes') || command.match(/\byes\b/))) {
-                awaitingNextConfirmation = false;
+                awaitingNextConfirmation = true;
                 goToNextQuestion();
             }
             else if (awaitingNextConfirmation && (command.includes('no') || command.match(/\bno\b/))) {
@@ -696,78 +697,138 @@
             }
         }
         
-        // Select an option via voice command
-        function selectOption(letter) {
-            // Highlight the selected option
-            document.querySelectorAll('.option-item').forEach(option => {
-                option.classList.remove('selected');
-                if (option.getAttribute('data-option') === letter) {
-                    option.classList.add('selected');
-                }
-            });
-            
-            // Provide feedback (this would normally be checked against the correct answer)
-            const feedback = 'You selected option ' + letter + '. Do you want to proceed to the next question? Say yes or no.';
-            speakText(feedback);
-            
-            const feedbackElement = document.getElementById('quiz-feedback');
-            feedbackElement.textContent = feedback;
-            feedbackElement.className = '';
-            feedbackElement.style.display = 'block';
-            
-            awaitingNextConfirmation = true;
+        // Add a global variable to track if an option has been submitted
+let optionSubmitted = false;
+
+// Modify the selectOption function
+function selectOption(letter) {
+    // Prevent selecting a new option if one has already been submitted
+    if (optionSubmitted) {
+        speakText('An option has already been submitted. You cannot change your answer.');
+        return;
+    }
+
+    // Highlight the selected option
+    document.querySelectorAll('.option-item').forEach(option => {
+        option.classList.remove('selected');
+        if (option.getAttribute('data-option') === letter) {
+            option.classList.add('selected');
         }
-        
-        // Go to next question
-        function goToNextQuestion() {
-            currentQuestionIndex++;
-            
-            if (currentQuestionIndex < quizData.length) {
-                displayQuestion();
-            } else {
-                // Quiz completed
-                document.getElementById('quiz-question').textContent = 'Quiz completed!';
-                document.querySelectorAll('.option-item').forEach(option => {
-                    option.style.display = 'none';
-                });
-                speakText('Quiz completed! Thank you for participating.');
-                stopListening();
-            }
+    });
+    
+    // Check if the answer is correct
+    const currentQuestion = quizData[currentQuestionIndex];
+    const isCorrect = letter === currentQuestion.correctAnswer;
+    
+    // Provide feedback
+    const feedbackElement = document.getElementById('quiz-feedback');
+    
+    if (isCorrect) {
+        feedbackElement.textContent = 'Correct! Do you want to proceed to the next question? Say yes or no.';
+        feedbackElement.className = 'feedback-correct';
+        speakText('Correct! Do you want to proceed to the next question? Say yes or no.');
+    } else {
+        feedbackElement.textContent = 'Incorrect. The correct answer is option ' + currentQuestion.correctAnswer + '. Do you want to proceed to the next question? Say yes or no.';
+        feedbackElement.className = 'feedback-incorrect';
+        speakText('Incorrect. The correct answer is option ' + currentQuestion.correctAnswer + '. Do you want to proceed to the next question? Say yes or no.');
+    }
+    
+    feedbackElement.style.display = 'block';
+    awaitingNextConfirmation = true;
+    optionSubmitted = true; // Lock the option
+}
+
+// Modify the goToNextQuestion function to reset the optionSubmitted flag
+function goToNextQuestion() {
+    currentQuestionIndex++;
+    optionSubmitted = false; // Reset the flag for the next question
+    
+    if (currentQuestionIndex < quizData.length) {
+        displayQuestion();
+    } else {
+        // Quiz completed
+        document.getElementById('quiz-question').textContent = 'Quiz completed!';
+        document.querySelectorAll('.option-item').forEach(option => {
+            option.style.display = 'none';
+        });
+        speakText('Quiz completed! Thank you for participating.');
+        stopListening();
+    }
+}
+
+// Modify the processVoiceCommand to handle the new behavior
+function processVoiceCommand(command) {
+    console.log('Voice command:', command);
+    
+    if (command.includes('repeat question')) {
+        speakText(document.getElementById('quiz-question').textContent);
+    }
+    else if (command.includes('repeat options')) {
+        speakOptions();
+    }
+    else if (!optionSubmitted) {
+        // Only allow option selection if no option has been submitted
+        if (command.includes('option a') || command.match(/\ba\b/)) {
+            selectOption('A');
         }
-        
-        // Display current question
-        function displayQuestion() {
-            const currentQuestion = quizData[currentQuestionIndex];
-            document.getElementById('quiz-question').textContent = currentQuestion.question;
-            
-            const options = document.querySelectorAll('.option-item');
-            
-            options[0].querySelector('.option-text').textContent = currentQuestion.options[0];
-            options[1].querySelector('.option-text').textContent = currentQuestion.options[1];
-            options[2].querySelector('.option-text').textContent = currentQuestion.options[2];
-            options[3].querySelector('.option-text').textContent = currentQuestion.options[3];
-            
-            // Reset selected state
-            options.forEach(option => {
-                option.classList.remove('selected');
-                option.style.display = 'flex';
-            });
-            
-            // Update progress bar
-            document.getElementById('quiz-progress').style.width = 
-                ((currentQuestionIndex + 1) / quizData.length * 100) + '%';
-            
-            // Hide feedback
-            document.getElementById('quiz-feedback').style.display = 'none';
-            
-            // Speak the question and options
-            setTimeout(() => {
-                speakText('Question ' + (currentQuestionIndex + 1) + ': ' + currentQuestion.question);
-                setTimeout(() => {
-                    speakOptions();
-                }, 1500);
-            }, 500);
+        else if (command.includes('option b') || command.match(/\bb\b/)) {
+            selectOption('B');
         }
+        else if (command.includes('option c') || command.match(/\bc\b/)) {
+            selectOption('C');
+        }
+        else if (command.includes('option d') || command.match(/\bd\b/)) {
+            selectOption('D');
+        }
+    }
+    
+    // The rest of the confirmation logic remains the same
+    if (awaitingNextConfirmation && (command.includes('yes') || command.match(/\byes\b/))) {
+        awaitingNextConfirmation = false;
+        goToNextQuestion();
+    }
+    else if (awaitingNextConfirmation && (command.includes('no') || command.match(/\bno\b/))) {
+        awaitingNextConfirmation = false;
+        speakText('Staying on current question. Say "repeat question" or "repeat options" if needed.');
+    }
+}
+
+// Modify the displayQuestion function to reset the option submission
+function displayQuestion() {
+    const currentQuestion = quizData[currentQuestionIndex];
+    document.getElementById('quiz-question').textContent = currentQuestion.question;
+    
+    const options = document.querySelectorAll('.option-item');
+    
+    options[0].querySelector('.option-text').textContent = currentQuestion.options[0];
+    options[1].querySelector('.option-text').textContent = currentQuestion.options[1];
+    options[2].querySelector('.option-text').textContent = currentQuestion.options[2];
+    options[3].querySelector('.option-text').textContent = currentQuestion.options[3];
+    
+    // Reset selected state
+    options.forEach(option => {
+        option.classList.remove('selected');
+        option.style.display = 'flex';
+    });
+    
+    // Update progress bar
+    document.getElementById('quiz-progress').style.width = 
+        ((currentQuestionIndex + 1) / quizData.length * 100) + '%';
+    
+    // Hide feedback
+    document.getElementById('quiz-feedback').style.display = 'none';
+    
+    // Reset option submission flag
+    optionSubmitted = false;
+    
+    // Speak the question and options
+    setTimeout(() => {
+        speakText('Question ' + (currentQuestionIndex + 1) + ': ' + currentQuestion.question);
+        setTimeout(() => {
+            speakOptions();
+        }, 1500);
+    }, 500);
+}
         
         // Add a new question in the create quiz form
         function addQuestion() {

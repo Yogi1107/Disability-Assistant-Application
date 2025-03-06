@@ -3,90 +3,439 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Detection</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Sign Language Translator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Add some basic styles */
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f0f0f0;
-            text-align: center;
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #4338ca;
+            --background-color: #f5f3ff;
+            --text-color: #1f2937;
+            --card-background: white;
         }
-        #videoContainer {
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: var(--text-color);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .video-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .video-container {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .video-container:hover {
+            transform: scale(1.02);
+        }
+
+        #video {
             width: 640px;
             height: 480px;
-            margin: auto;
-            background-color: black;
+            background-color: #000;
+            object-fit: cover;
         }
-        #gestureLabel, #sentenceLabel {
-            font-size: 24px;
+
+        .results-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background-color: var(--card-background);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            min-width: 300px;
+        }
+
+        .result-card {
+            background-color: var(--background-color);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+
+        .back-button {
+            display: inline-block;
             margin-top: 20px;
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--card-background);
+            margin-top: 30px;
+            color: var(--text-color);
+        }
+
+        @media (max-width: 1024px) {
+            .video-section {
+                flex-direction: column;
+            }
+
+            #video {
+                max-width: 100%;
+                height: auto;
+            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Sign Detection</h1>
-    </header>
-    <main>
-        <div id="videoContainer">
-            <video id="video" width="640" height="480" autoplay></video>
-        </div>
-        <div id="gestureLabel">Detected Gesture: DETECTING...</div>
-        <div id="sentenceLabel">Meaning: ...</div>
-        <button onclick="window.history.back()">Back</button>
-    </main>
-    <footer>
-        <p>© 2025 Disability Assistant - Final Year Project</p>
+    <div class="container">
+        <header class="header">
+            <h1>Sign Language Translator</h1>
+            <p>Real-time sign language detection and translation powered by advanced computer vision technology</p>
+        </header>
+
+        <section class="video-section">
+            <div class="video-container">
+                <video id="video" autoplay></video>
+            </div>
+
+            <div class="results-container">
+                <div class="result-card">
+                    <div class="result-label">Detected Gesture</div>
+                    <div id="gestureLabel" class="result-value">DETECTING...</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">Meaning</div>
+                    <div id="sentenceLabel" class="result-value">Waiting for sign...</div>
+                </div>
+            </div>
+        </section>
+
+        <a href="#" onclick="window.history.back()" class="back-button">Go Back</a>
+    </div>
+
+    <footer class="footer">
+        <p>© 2025 Disability Assistant - Bridging Communication Gaps</p>
     </footer>
 
     <script>
-        // Access the video stream
-        const video = document.getElementById('video');
-        navigator.mediaDevices.getUser Media({ video: true })
-            .then(stream => {
-                video.srcObject = stream;
-                startVideoProcessing();
-            })
-            .catch(err => {
-                console.error("Error accessing the camera: ", err);
-            });
+       // Sign Language Detection Script
 
-        function startVideoProcessing() {
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = 640;
-            canvas.height = 480;
+// Global variables for video and processing
+let video;
+let canvas;
+let context;
+let isProcessing = false;
 
-            setInterval(() => {
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                sendFrameToServer(imageData);
-            }, 100); // Send frame every 100ms
+// Initialize the application when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize video and canvas elements
+    video = document.getElementById('video');
+    canvas = document.createElement('canvas');
+    context = canvas.getContext('2d');
+
+    // Setup video constraints
+    const constraints = {
+        video: { 
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: 'user' 
         }
+    };
 
-        function sendFrameToServer(imageData) {
-            // Convert image data to a Blob
-            const blob = new Blob([imageData.data], { type: 'image/png' });
+    // Attempt to access user's camera
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then(initializeVideoStream)
+        .catch(handleCameraError);
+});
 
-            const formData = new FormData();
-            formData.append('frame', blob);
+// Initialize video stream
+function initializeVideoStream(stream) {
+    video.srcObject = stream;
+    video.addEventListener('loadedmetadata', () => {
+        video.play();
+        
+        // Set canvas dimensions to match video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
 
-            fetch('/process_frame', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Update the UI with the detected gesture and meaning
-                document.getElementById('gestureLabel').innerText = `Detected Gesture: ${data.gesture}`;
-                document.getElementById('sentenceLabel').innerText = `Meaning: ${data.meaning}`;
-            })
-            .catch(error => {
-                console.error('Error processing frame:', error);
-            });
-        }
+        // Start video processing
+        startVideoProcessing();
+    });
+}
+
+// Handle camera access errors
+function handleCameraError(error) {
+    console.error("Camera access error:", error);
+    updateUIWithError('Camera Access Denied', 'Please check camera permissions');
+}
+
+// Start continuous video frame processing
+function startVideoProcessing() {
+    // Prevent multiple processing loops
+    if (isProcessing) return;
+    
+    isProcessing = true;
+    processVideoFrame();
+}
+
+// Process individual video frames
+function processVideoFrame() {
+    // Ensure video is ready
+    if (video.paused || video.ended) {
+        isProcessing = false;
+        return;
+    }
+
+    // Draw current video frame to canvas
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Convert canvas to image data
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    
+    // Send frame to server for processing
+    sendFrameToServer(imageData);
+
+    // Continue processing frames
+    requestAnimationFrame(processVideoFrame);
+}
+
+// Send frame to server for sign detection
+function sendFrameToServer(imageData) {
+    // Convert image data to base64 for efficient transmission
+    const base64Image = canvas.toDataURL('image/jpeg', 0.7);
+
+    // Prepare data for server
+    const payload = {
+        image: base64Image
+    };
+
+    // Send frame to backend
+    fetch('/process_frame', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(processDetectionResult)
+    .catch(handleProcessingError);
+}
+
+// Process hand landmarks and detect gestures
+function processHandLandmarks(landmarks) {
+    // Extracting specific landmark points for comparison
+    const thumb_tip = landmarks[4];
+    const thumb_ip = landmarks[3];
+    const index_tip = landmarks[8];
+    const index_mcp = landmarks[5];
+    const middle_tip = landmarks[12];
+    const middle_mcp = landmarks[9];
+    const ring_tip = landmarks[16];
+    const ring_mcp = landmarks[13];
+    const pinky_tip = landmarks[20];
+    const pinky_mcp = landmarks[17];
+
+    // Sign recognition logic
+    // Open Palm: All fingertips below their respective metacarpophalangeal (MCP) joints
+    if (index_tip[1] < index_mcp[1] && 
+        middle_tip[1] < middle_mcp[1] && 
+        ring_tip[1] < ring_mcp[1] && 
+        pinky_tip[1] < pinky_mcp[1]) {
+        return {
+            gesture: "Open Palm", 
+            meaning: "Hello! How are you?",
+            confidence: 0.9
+        };
+    }
+
+    // Pointing: Index tip down, other fingers up
+    else if (index_tip[1] < index_mcp[1] && 
+             middle_tip[1] > middle_mcp[1] && 
+             ring_tip[1] > ring_mcp[1] && 
+             pinky_tip[1] > pinky_mcp[1]) {
+        return {
+            gesture: "Pointing", 
+            meaning: "Look there! What is that?",
+            confidence: 0.85
+        };
+    }
+
+    // Thumbs Up: Fingers progressively positioned from thumb to pinky
+    else if (thumb_tip[0] < thumb_ip[0] && 
+             index_tip[0] < middle_tip[0] && 
+             middle_tip[0] < ring_tip[0] && 
+             ring_tip[0] < pinky_tip[0]) {
+        return {
+            gesture: "Thumbs Up", 
+            meaning: "Yes! Good! Okay.",
+            confidence: 0.9
+        };
+    }
+
+    // Thumbs Down: Fingers progressively positioned in opposite direction
+    else if (thumb_tip[0] > thumb_ip[0] && 
+             index_tip[0] > middle_tip[0] && 
+             middle_tip[0] > ring_tip[0] && 
+             ring_tip[0] > pinky_tip[0]) {
+        return {
+            gesture: "Thumbs Down", 
+            meaning: "No! Not Good.",
+            confidence: 0.9
+        };
+    }
+
+    // Victory (Peace) Sign: Index and middle fingers extended, others closed
+    else if (index_tip[1] < index_mcp[1] && 
+             thumb_tip[1] < thumb_ip[1] && 
+             middle_tip[1] < middle_mcp[1] && 
+             ring_tip[1] > ring_mcp[1] && 
+             pinky_tip[1] > pinky_mcp[1]) {
+        return {
+            gesture: "Victory (Peace)", 
+            meaning: "Victory! Everything is fine.",
+            confidence: 0.88
+        };
+    }
+
+    // Default state if no specific gesture is detected
+    return {
+        gesture: "DETECTING...", 
+        meaning: "Analyzing hand movement...",
+        confidence: 0.1
+    };
+}
+
+// Process detection results from server
+function processDetectionResult(data) {
+    // Check if landmarks are available
+    if (!data.landmarks || data.landmarks.length === 0) {
+        updateUIWithError('No Hand Detected', 'Please ensure your hand is visible');
+        return;
+    }
+
+    // Process hand landmarks
+    const gestureResult = processHandLandmarks(data.landmarks);
+    
+    // Update UI with gesture and meaning
+    updateDetectionUI(gestureResult);
+}
+
+// Update UI with detection results
+function updateDetectionUI(result) {
+    const gestureLabel = document.getElementById('gestureLabel');
+    const sentenceLabel = document.getElementById('sentenceLabel');
+
+    // Update gesture and meaning
+    gestureLabel.textContent = result.gesture;
+    sentenceLabel.textContent = result.meaning;
+
+    // Update confidence visualization
+    updateConfidenceIndicator(result.confidence);
+}
+
+// Create confidence indicator
+function updateConfidenceIndicator(confidence) {
+    let confidenceBar = document.getElementById('confidenceBar');
+    
+    // Create confidence bar if it doesn't exist
+    if (!confidenceBar) {
+        confidenceBar = document.createElement('div');
+        confidenceBar.id = 'confidenceBar';
+        confidenceBar.style.position = 'absolute';
+        confidenceBar.style.bottom = '0';
+        confidenceBar.style.left = '0';
+        confidenceBar.style.height = '10px';
+        confidenceBar.style.transition = 'width 0.3s ease';
+        document.querySelector('.video-container').appendChild(confidenceBar);
+    }
+    
+    // Update confidence bar style
+    confidenceBar.style.width = `${confidence * 100}%`;
+    confidenceBar.style.backgroundColor = confidence > 0.8 ? 'green' : 
+                                          confidence > 0.5 ? 'orange' : 'red';
+}
+
+// Handle processing errors
+function handleProcessingError(error) {
+    console.error('Frame processing error:', error);
+    updateUIWithError('Processing Error', 'Check your connection');
+}
+
+// Generic error update function
+function updateUIWithError(gesture, meaning) {
+    document.getElementById('gestureLabel').textContent = gesture;
+    document.getElementById('sentenceLabel').textContent = meaning;
+}
+
+// Add event listener for back button
+document.querySelector('.back-button')?.addEventListener('click', () => {
+    window.history.back();
+});
     </script>
 </body>
 </html>
