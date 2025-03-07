@@ -31,7 +31,7 @@ To run the Disability Assistant Application, follow these steps:
 Install the required packages: Ensure you have Python installed, then install the necessary libraries using pip:
 
 ```bash
-pip install opencv-python mediapipe pyttsx3 SpeechRecognition pywhatkit Pillow
+pip install opencv-python mediapipe pyttsx3 SpeechRecognition pywhatkit Pillow Flask
 ```
 
 Run the application: Execute the following command to start the application:
