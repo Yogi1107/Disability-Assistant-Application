@@ -862,6 +862,85 @@ function displayQuestion() {
             questionContainer.appendChild(newQuestionDiv);
         }
         
+        // Add these validation functions right before the saveQuiz function
+
+// Function to validate quiz title
+function validateQuizTitle(title) {
+    // Check if title starts with underscore or alphabetic character and contains only allowed characters
+    const titleRegex = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+    return titleRegex.test(title);
+}
+
+// Function to validate that all options are unique within a question
+function validateUniqueOptions(optionA, optionB, optionC, optionD) {
+    const options = [optionA, optionB, optionC, optionD];
+    const uniqueOptions = new Set(options);
+    
+    // If set size is less than array length, there are duplicates
+    return uniqueOptions.size === options.length;
+}
+
+// Modify the saveQuiz function to include validation
+function saveQuiz(event) {
+    event.preventDefault();
+    
+    // Get quiz title
+    const quizTitle = document.getElementById('quiz-title').value;
+    
+    // Validate quiz title
+    if (!validateQuizTitle(quizTitle)) {
+        alert('Quiz title must start with a letter or underscore and contain only letters, numbers, or underscores.');
+        return;
+    }
+    
+    // Get all questions
+    const questionInputs = document.querySelectorAll('input[name="question"]');
+    const optionAs = document.querySelectorAll('input[name="option-a"]');
+    const optionBs = document.querySelectorAll('input[name="option-b"]');
+    const optionCs = document.querySelectorAll('input[name="option-c"]');
+    const optionDs = document.querySelectorAll('input[name="option-d"]');
+    const correctAnswers = document.querySelectorAll('select[name="correct-answer"]');
+    
+    // Validate each question's options are unique
+    for (let i = 0; i < questionInputs.length; i++) {
+        if (!validateUniqueOptions(
+            optionAs[i].value.trim(),
+            optionBs[i].value.trim(),
+            optionCs[i].value.trim(),
+            optionDs[i].value.trim()
+        )) {
+            alert('Question ' + (i+1) + ': All options must be unique.');
+            return;
+        }
+    }
+    
+    // Create saved questions list
+    const questionList = document.getElementById('question-list');
+    questionList.innerHTML = '<h3>Saved Questions for "' + quizTitle + '"</h3>';
+    
+    for (let i = 0; i < questionInputs.length; i++) {
+        const questionCard = document.createElement('div');
+        questionCard.classList.add('question-card');
+        
+        questionCard.innerHTML = `
+            <div class="question-text">Q${i+1}: ${questionInputs[i].value}</div>
+            <ul class="question-options">
+                <li>A: ${optionAs[i].value} ${correctAnswers[i].value === 'A' ? '✓' : ''}</li>
+                <li>B: ${optionBs[i].value} ${correctAnswers[i].value === 'B' ? '✓' : ''}</li>
+                <li>C: ${optionCs[i].value} ${correctAnswers[i].value === 'C' ? '✓' : ''}</li>
+                <li>D: ${optionDs[i].value} ${correctAnswers[i].value === 'D' ? '✓' : ''}</li>
+            </ul>
+        `;
+
+        questionList.appendChild(questionCard);
+    }
+    
+    // Reset the form after saving
+    document.getElementById('quiz-form').reset();
+    questionCount = 1; // Reset question count
+}
+
+
         // Save quiz (demo functionality)
         function saveQuiz(event) {
             event.preventDefault();
