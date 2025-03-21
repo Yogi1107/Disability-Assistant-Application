@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Language Translator</title>
+    <!-- Add these in the head section of your HTML -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -185,183 +188,347 @@
        // Sign Language Detection Script
 
 // Global variables for video and processing
+// Global variables
+// Global variables
 let video;
-let canvas;
-let context;
+let handPoseModel;
+let predictions = [];
 let isProcessing = false;
+let lastProcessedTime = 0;
+let processingInterval = 100; // Process frames every 100ms
+let gestureHistory = []; // Store recent gestures for stability
+let historyMaxLength = 5; // Number of frames to consider for stability
 
-// Initialize the application when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize video and canvas elements
+// Initialize the application
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize video element
     video = document.getElementById('video');
-    canvas = document.createElement('canvas');
-    context = canvas.getContext('2d');
-
-    // Setup video constraints
-    const constraints = {
-        video: { 
-            width: { ideal: 640 },
-            height: { ideal: 480 },
-            facingMode: 'user' 
-        }
-    };
-
-    // Attempt to access user's camera
-    navigator.mediaDevices.getUserMedia(constraints)
-        .then(initializeVideoStream)
-        .catch(handleCameraError);
-});
-
-// Initialize video stream
-function initializeVideoStream(stream) {
-    video.srcObject = stream;
-    video.addEventListener('loadedmetadata', () => {
+    
+    try {
+        // Setup camera
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+                facingMode: 'user' 
+            }
+        });
+        
+        video.srcObject = stream;
         video.play();
         
-        // Set canvas dimensions to match video
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        // Load handpose model from TensorFlow.js
+        await loadHandposeModel();
+        
+        // Start detection loop
+        startDetection();
+    } catch (error) {
+        console.error("Initialization error:", error);
+        updateUIWithError('Setup Error', 'Could not initialize camera or model');
+    }
+});
 
-        // Start video processing
-        startVideoProcessing();
-    });
+// Load handpose model
+async function loadHandposeModel() {
+    updateUIWithError('Loading Model', 'Please wait...');
+    
+    try {
+        // Load the MediaPipe Handpose model
+        handPoseModel = await handpose.load();
+        updateUIWithError('Model Ready', 'Show your hand gestures');
+    } catch (error) {
+        console.error("Model loading error:", error);
+        updateUIWithError('Model Error', 'Could not load hand detection model');
+    }
 }
 
-// Handle camera access errors
-function handleCameraError(error) {
-    console.error("Camera access error:", error);
-    updateUIWithError('Camera Access Denied', 'Please check camera permissions');
-}
-
-// Start continuous video frame processing
-function startVideoProcessing() {
-    // Prevent multiple processing loops
+// Start continuous detection
+function startDetection() {
     if (isProcessing) return;
     
     isProcessing = true;
-    processVideoFrame();
+    detectHands();
 }
 
-// Process individual video frames
-function processVideoFrame() {
-    // Ensure video is ready
+// Main detection loop
+async function detectHands() {
     if (video.paused || video.ended) {
         isProcessing = false;
         return;
     }
-
-    // Draw current video frame to canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
     
-    // Convert canvas to image data
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const currentTime = Date.now();
     
-    // Send frame to server for processing
-    sendFrameToServer(imageData);
-
-    // Continue processing frames
-    requestAnimationFrame(processVideoFrame);
+    // Process frames at controlled intervals to improve performance
+    if (currentTime - lastProcessedTime >= processingInterval) {
+        try {
+            // Get hand predictions from the model
+            predictions = await handPoseModel.estimateHands(video);
+            
+            if (predictions.length > 0) {
+                // Format landmarks for our detection function
+                const landmarks = predictions[0].landmarks.map(point => [point[0], point[1], point[2]]);
+                
+                // Process hand landmarks to detect gestures
+                const gestureResult = processHandLandmarks(landmarks);
+                
+                // Add to gesture history for stability
+                gestureHistory.push(gestureResult);
+                
+                // Keep history at fixed length
+                if (gestureHistory.length > historyMaxLength) {
+                    gestureHistory.shift();
+                }
+                
+                // Use most common gesture from recent history for stability
+                const stableGesture = getStableGesture();
+                
+                // Update UI with detected gesture
+                updateDetectionUI(stableGesture);
+            } else {
+                gestureHistory = [];
+                updateUIWithError('No Hand Detected', 'Please ensure your hand is visible');
+            }
+            
+            lastProcessedTime = currentTime;
+        } catch (error) {
+            console.error("Detection error:", error);
+        }
+    }
+    
+    // Continue the detection loop
+    requestAnimationFrame(detectHands);
 }
 
-// Send frame to server for sign detection
-function sendFrameToServer(imageData) {
-    // Convert image data to base64 for efficient transmission
-    const base64Image = canvas.toDataURL('image/jpeg', 0.7);
+// Get the most stable gesture from history
+function getStableGesture() {
+    if (gestureHistory.length === 0) {
+        return {
+            gesture: "DETECTING...", 
+            meaning: "Analyzing hand movement...",
+            confidence: 0.1
+        };
+    }
+    
+    // Count occurrences of each gesture
+    const gestureCounts = {};
+    
+    gestureHistory.forEach(item => {
+        if (!gestureCounts[item.gesture]) {
+            gestureCounts[item.gesture] = {
+                count: 0,
+                confidence: 0,
+                meaning: item.meaning
+            };
+        }
+        gestureCounts[item.gesture].count++;
+        gestureCounts[item.gesture].confidence += item.confidence;
+    });
+    
+    // Find the most common gesture
+    let maxCount = 0;
+    let stableGesture = null;
+    
+    for (const gesture in gestureCounts) {
+        if (gestureCounts[gesture].count > maxCount) {
+            maxCount = gestureCounts[gesture].count;
+            stableGesture = {
+                gesture: gesture,
+                meaning: gestureCounts[gesture].meaning,
+                confidence: gestureCounts[gesture].confidence / gestureCounts[gesture].count
+            };
+        }
+    }
+    
+    return stableGesture;
+}
 
-    // Prepare data for server
-    const payload = {
-        image: base64Image
-    };
-
-    // Send frame to backend
-    fetch('/process_frame', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(response => response.json())
-    .then(processDetectionResult)
-    .catch(handleProcessingError);
+// Calculate distance between two points
+function distance(point1, point2) {
+    return Math.sqrt(
+        Math.pow(point1[0] - point2[0], 2) + 
+        Math.pow(point1[1] - point2[1], 2)
+    );
 }
 
 // Process hand landmarks and detect gestures
 function processHandLandmarks(landmarks) {
-    // Extracting specific landmark points for comparison
-    const thumb_tip = landmarks[4];
+    // Extract specific landmark points for comparison
+    const wrist = landmarks[0];
+    const thumb_cmc = landmarks[1];
+    const thumb_mcp = landmarks[2];
     const thumb_ip = landmarks[3];
-    const index_tip = landmarks[8];
+    const thumb_tip = landmarks[4];
+    
     const index_mcp = landmarks[5];
-    const middle_tip = landmarks[12];
+    const index_pip = landmarks[6];
+    const index_dip = landmarks[7];
+    const index_tip = landmarks[8];
+    
     const middle_mcp = landmarks[9];
-    const ring_tip = landmarks[16];
+    const middle_pip = landmarks[10];
+    const middle_dip = landmarks[11];
+    const middle_tip = landmarks[12];
+    
     const ring_mcp = landmarks[13];
-    const pinky_tip = landmarks[20];
+    const ring_pip = landmarks[14];
+    const ring_dip = landmarks[15];
+    const ring_tip = landmarks[16];
+    
     const pinky_mcp = landmarks[17];
+    const pinky_pip = landmarks[18];
+    const pinky_dip = landmarks[19];
+    const pinky_tip = landmarks[20];
+    
+    // Helper function to check if a finger is extended (tip is higher than mcp)
+    const isFingerExtended = (tip, mcp, threshold = 20) => tip[1] < mcp[1] - threshold;
+    
+    // Helper function to check if fingers are close to each other
+    const areFingersClose = (tip1, tip2, threshold = 30) => distance(tip1, tip2) < threshold;
 
-    // Sign recognition logic
-    // Open Palm: All fingertips below their respective metacarpophalangeal (MCP) joints
-    if (index_tip[1] < index_mcp[1] && 
-        middle_tip[1] < middle_mcp[1] && 
-        ring_tip[1] < ring_mcp[1] && 
-        pinky_tip[1] < pinky_mcp[1]) {
+    // 1. Open Palm / "Hello": All fingers extended
+    if (isFingerExtended(index_tip, index_mcp) && 
+        isFingerExtended(middle_tip, middle_mcp) && 
+        isFingerExtended(ring_tip, ring_mcp) && 
+        isFingerExtended(pinky_tip, pinky_mcp) &&
+        thumb_tip[0] < index_mcp[0]) {  // Thumb out to side
         return {
             gesture: "Open Palm", 
             meaning: "Hello! How are you?",
             confidence: 0.9
         };
     }
-
-    // Pointing: Index tip down, other fingers up
-    else if (index_tip[1] < index_mcp[1] && 
-             middle_tip[1] > middle_mcp[1] && 
-             ring_tip[1] > ring_mcp[1] && 
-             pinky_tip[1] > pinky_mcp[1]) {
+    
+    // 2. Pointing / "Look": Only index finger extended
+    else if (isFingerExtended(index_tip, index_mcp) && 
+             !isFingerExtended(middle_tip, middle_mcp, 10) && 
+             !isFingerExtended(ring_tip, ring_mcp, 10) && 
+             !isFingerExtended(pinky_tip, pinky_mcp, 10)) {
         return {
             gesture: "Pointing", 
             meaning: "Look there! What is that?",
             confidence: 0.85
         };
     }
-
-    // Thumbs Up: Fingers progressively positioned from thumb to pinky
-    else if (thumb_tip[0] < thumb_ip[0] && 
-             index_tip[0] < middle_tip[0] && 
-             middle_tip[0] < ring_tip[0] && 
-             ring_tip[0] < pinky_tip[0]) {
+    
+    // 3. Thumbs Up / "Yes": Thumb extended upward, others closed
+    else if (thumb_tip[1] < thumb_ip[1] - 30 &&
+             !isFingerExtended(index_tip, index_mcp, 10) &&
+             !isFingerExtended(middle_tip, middle_mcp, 10) &&
+             !isFingerExtended(ring_tip, ring_mcp, 10) &&
+             !isFingerExtended(pinky_tip, pinky_mcp, 10)) {
         return {
             gesture: "Thumbs Up", 
             meaning: "Yes! Good! Okay.",
             confidence: 0.9
         };
     }
-
-    // Thumbs Down: Fingers progressively positioned in opposite direction
-    else if (thumb_tip[0] > thumb_ip[0] && 
-             index_tip[0] > middle_tip[0] && 
-             middle_tip[0] > ring_tip[0] && 
-             ring_tip[0] > pinky_tip[0]) {
+    
+    // 4. Thumbs Down / "No": Thumb extended downward, others closed
+    else if (thumb_tip[1] > thumb_ip[1] + 30 &&
+             !isFingerExtended(index_tip, index_mcp, 10) &&
+             !isFingerExtended(middle_tip, middle_mcp, 10) &&
+             !isFingerExtended(ring_tip, ring_mcp, 10) &&
+             !isFingerExtended(pinky_tip, pinky_mcp, 10)) {
         return {
             gesture: "Thumbs Down", 
             meaning: "No! Not Good.",
             confidence: 0.9
         };
     }
-
-    // Victory (Peace) Sign: Index and middle fingers extended, others closed
-    else if (index_tip[1] < index_mcp[1] && 
-             thumb_tip[1] < thumb_ip[1] && 
-             middle_tip[1] < middle_mcp[1] && 
-             ring_tip[1] > ring_mcp[1] && 
-             pinky_tip[1] > pinky_mcp[1]) {
+    
+    // 5. Victory / Peace: Index and middle fingers extended, others closed
+    else if (isFingerExtended(index_tip, index_mcp) && 
+             isFingerExtended(middle_tip, middle_mcp) && 
+             !isFingerExtended(ring_tip, ring_mcp, 10) && 
+             !isFingerExtended(pinky_tip, pinky_mcp, 10)) {
         return {
             gesture: "Victory (Peace)", 
             meaning: "Victory! Everything is fine.",
             confidence: 0.88
         };
     }
-
+    
+    // 6. "Thank You": Flat hand touching the chin then moving forward
+    else if (isFingerExtended(index_tip, index_mcp) && 
+             isFingerExtended(middle_tip, middle_mcp) && 
+             isFingerExtended(ring_tip, ring_mcp) && 
+             isFingerExtended(pinky_tip, pinky_mcp) &&
+             Math.abs(index_tip[1] - middle_tip[1]) < 15 &&  // Fingers aligned
+             Math.abs(middle_tip[1] - ring_tip[1]) < 15 &&
+             Math.abs(ring_tip[1] - pinky_tip[1]) < 15) {
+        return {
+            gesture: "Thank You", 
+            meaning: "Thank you very much!",
+            confidence: 0.85
+        };
+    }
+    
+    // 7. "I Love You": Thumb, index, and pinky extended (ASL sign)
+    else if (thumb_tip[0] < thumb_mcp[0] &&  // Thumb extended outward
+             isFingerExtended(index_tip, index_mcp) && 
+             !isFingerExtended(middle_tip, middle_mcp, 10) && 
+             !isFingerExtended(ring_tip, ring_mcp, 10) && 
+             isFingerExtended(pinky_tip, pinky_mcp)) {
+        return {
+            gesture: "I Love You", 
+            meaning: "I love you (ASL sign)",
+            confidence: 0.92
+        };
+    }
+    
+    // 8. "Water": W shape with three middle fingers
+    else if (isFingerExtended(index_tip, index_mcp) && 
+             isFingerExtended(middle_tip, middle_mcp) && 
+             isFingerExtended(ring_tip, ring_mcp) && 
+             !isFingerExtended(pinky_tip, pinky_mcp, 10) &&
+             !areFingersClose(index_tip, middle_tip) &&
+             !areFingersClose(middle_tip, ring_tip)) {
+        return {
+            gesture: "Water", 
+            meaning: "Water or drink, please",
+            confidence: 0.82
+        };
+    }
+    
+    // 9. "Help": Closed fist with thumb up resting on open palm
+    else if (!isFingerExtended(index_tip, index_mcp, 10) &&
+             !isFingerExtended(middle_tip, middle_mcp, 10) &&
+             !isFingerExtended(ring_tip, ring_mcp, 10) &&
+             !isFingerExtended(pinky_tip, pinky_mcp, 10) &&
+             thumb_tip[1] < wrist[1]) {
+        return {
+            gesture: "Help", 
+            meaning: "I need help, please",
+            confidence: 0.8
+        };
+    }
+    
+    // 10. "Food/Eat": Fingers and thumb brought together toward mouth
+    else if (areFingersClose(index_tip, thumb_tip) &&
+             areFingersClose(middle_tip, thumb_tip) &&
+             areFingersClose(ring_tip, thumb_tip) &&
+             areFingersClose(pinky_tip, thumb_tip)) {
+        return {
+            gesture: "Food", 
+            meaning: "I'm hungry / I want to eat",
+            confidence: 0.85
+        };
+    }
+    
+    // 11. "Stop": Hand up, palm facing forward
+    else if (isFingerExtended(index_tip, index_mcp) && 
+             isFingerExtended(middle_tip, middle_mcp) && 
+             isFingerExtended(ring_tip, ring_mcp) && 
+             isFingerExtended(pinky_tip, pinky_mcp) &&
+             thumb_tip[0] > index_mcp[0]) {  // Thumb across palm
+        return {
+            gesture: "Stop", 
+            meaning: "Stop / Wait",
+            confidence: 0.88
+        };
+    }
+    
     // Default state if no specific gesture is detected
     return {
         gesture: "DETECTING...", 
@@ -370,39 +537,36 @@ function processHandLandmarks(landmarks) {
     };
 }
 
-// Process detection results from server
-function processDetectionResult(data) {
-    // Check if landmarks are available
-    if (!data.landmarks || data.landmarks.length === 0) {
-        updateUIWithError('No Hand Detected', 'Please ensure your hand is visible');
-        return;
-    }
-
-    // Process hand landmarks
-    const gestureResult = processHandLandmarks(data.landmarks);
-    
-    // Update UI with gesture and meaning
-    updateDetectionUI(gestureResult);
-}
-
 // Update UI with detection results
 function updateDetectionUI(result) {
     const gestureLabel = document.getElementById('gestureLabel');
     const sentenceLabel = document.getElementById('sentenceLabel');
 
-    // Update gesture and meaning
-    gestureLabel.textContent = result.gesture;
-    sentenceLabel.textContent = result.meaning;
+    // Update gesture and meaning with smooth transition
+    if (gestureLabel.textContent !== result.gesture) {
+        gestureLabel.style.opacity = 0;
+        setTimeout(() => {
+            gestureLabel.textContent = result.gesture;
+            gestureLabel.style.opacity = 1;
+        }, 200);
+    }
+    
+    if (sentenceLabel.textContent !== result.meaning) {
+        sentenceLabel.style.opacity = 0;
+        setTimeout(() => {
+            sentenceLabel.textContent = result.meaning;
+            sentenceLabel.style.opacity = 1;
+        }, 200);
+    }
 
     // Update confidence visualization
     updateConfidenceIndicator(result.confidence);
 }
 
-// Create confidence indicator
+// Visualize confidence
 function updateConfidenceIndicator(confidence) {
     let confidenceBar = document.getElementById('confidenceBar');
     
-    // Create confidence bar if it doesn't exist
     if (!confidenceBar) {
         confidenceBar = document.createElement('div');
         confidenceBar.id = 'confidenceBar';
@@ -410,20 +574,14 @@ function updateConfidenceIndicator(confidence) {
         confidenceBar.style.bottom = '0';
         confidenceBar.style.left = '0';
         confidenceBar.style.height = '10px';
-        confidenceBar.style.transition = 'width 0.3s ease';
+        confidenceBar.style.borderRadius = '0 5px 5px 0';
+        confidenceBar.style.transition = 'width 0.3s ease, background-color 0.3s ease';
         document.querySelector('.video-container').appendChild(confidenceBar);
     }
     
-    // Update confidence bar style
     confidenceBar.style.width = `${confidence * 100}%`;
-    confidenceBar.style.backgroundColor = confidence > 0.8 ? 'green' : 
-                                          confidence > 0.5 ? 'orange' : 'red';
-}
-
-// Handle processing errors
-function handleProcessingError(error) {
-    console.error('Frame processing error:', error);
-    updateUIWithError('Processing Error', 'Check your connection');
+    confidenceBar.style.backgroundColor = confidence > 0.8 ? '#22c55e' : 
+                                          confidence > 0.5 ? '#f59e0b' : '#ef4444';
 }
 
 // Generic error update function
@@ -432,9 +590,70 @@ function updateUIWithError(gesture, meaning) {
     document.getElementById('sentenceLabel').textContent = meaning;
 }
 
-// Add event listener for back button
-document.querySelector('.back-button')?.addEventListener('click', () => {
-    window.history.back();
+// Add a visual gesture guide
+function addGestureGuide() {
+    const container = document.querySelector('.container');
+    const guideSection = document.createElement('div');
+    guideSection.className = 'gesture-guide';
+    guideSection.innerHTML = `
+        <h2 style="text-align: center; margin: 30px 0 20px; color: var(--primary-color);">Available Hand Signs</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            <div class="result-card">
+                <div class="result-label">Open Palm</div>
+                <div class="result-value">Hello! How are you?</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">Pointing</div>
+                <div class="result-value">Look there!</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">Thumbs Up</div>
+                <div class="result-value">Yes! Good!</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">Thumbs Down</div>
+                <div class="result-value">No! Not Good!</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">Victory (Peace)</div>
+                <div class="result-value">Victory! Peace!</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">Thank You</div>
+                <div class="result-value">Thank you!</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">I Love You</div>
+                <div class="result-value">I love you! (ASL)</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">Water</div>
+                <div class="result-value">Water, please!</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">Help</div>
+                <div class="result-value">I need help!</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">Food</div>
+                <div class="result-value">I'm hungry!</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">Stop</div>
+                <div class="result-value">Stop! Wait!</div>
+            </div>
+        </div>
+    `;
+    
+    // Insert after the video-section
+    const videoSection = document.querySelector('.video-section');
+    videoSection.parentNode.insertBefore(guideSection, videoSection.nextSibling);
+}
+
+// Call this after DOM content is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Add gesture guide after setup
+    setTimeout(addGestureGuide, 1000);
 });
     </script>
 </body>
