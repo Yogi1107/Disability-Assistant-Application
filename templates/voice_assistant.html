@@ -254,14 +254,14 @@
             <div class="visualizer-bar"></div>
         </div>
         
-        <div class="status" id="status">Click the microphone to speak</div>
+        <div class="status" id="status">Listening...</div>
         
-        <button id="voiceButton" class="voice-btn" onclick="toggleListening()">
+        <button id="voiceButton" class="voice-btn listening" onclick="toggleListening()">
             <i class="fas fa-microphone"></i>
         </button>
         
         <div class="text-box" id="responseBox">
-            <p class="response">Hi there! I'm your voice assistant. How can I help you today?</p>
+            <p class="response">Hi there! I'm your voice assistant. I'm listening. How can I help you today?</p>
         </div>
         
         <div class="commands-list">
@@ -297,7 +297,7 @@
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                 // Create speech recognition object
                 recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-                recognition.continuous = false;
+                recognition.continuous = true; // Changed to true for continuous listening
                 recognition.interimResults = true;
                 recognition.lang = 'en-US';
                 
@@ -310,26 +310,59 @@
                 };
                 
                 recognition.onresult = function(event) {
-                    const transcript = event.results[0][0].transcript;
-                    if (event.results[0].isFinal) {
-                        document.getElementById('status').textContent = 'Processing: "' + transcript + '"';
-                        processCommand(transcript);
+                    let finalTranscript = '';
+                    let interimTranscript = '';
+                    
+                    // Get the latest result
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript = event.results[i][0].transcript;
+                            // Process the command
+                            if (finalTranscript.trim() !== '') {
+                                document.getElementById('status').textContent = 'Processing: "' + finalTranscript + '"';
+                                processCommand(finalTranscript);
+                            }
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                        }
+                    }
+                    
+                    // Display interim results
+                    if (interimTranscript !== '') {
+                        document.getElementById('status').textContent = 'Listening: ' + interimTranscript;
                     }
                 };
                 
                 recognition.onerror = function(event) {
                     document.getElementById('status').textContent = 'Error: ' + event.error;
-                    stopListening();
+                    // Restart listening after error
+                    restartListening();
                 };
                 
                 recognition.onend = function() {
-                    stopListening();
+                    // Automatically restart listening when it ends
+                    restartListening();
                 };
                 
                 return true;
             } else {
                 document.getElementById('status').textContent = 'Speech recognition not supported in this browser';
                 return false;
+            }
+        }
+        
+        // Restart listening
+        function restartListening() {
+            if (recognition) {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.error('Speech recognition restart error:', e);
+                    // If there's an error restarting, wait a bit and try again
+                    setTimeout(() => {
+                        startListening();
+                    }, 1000);
+                }
             }
         }
         
@@ -341,8 +374,11 @@
             
             if (isListening) {
                 stopListening();
+                document.getElementById('voiceButton').innerHTML = '<i class="fas fa-microphone-slash"></i>';
+                document.getElementById('status').textContent = 'Microphone off. Click to resume.';
             } else {
                 startListening();
+                document.getElementById('voiceButton').innerHTML = '<i class="fas fa-microphone"></i>';
             }
         }
         
@@ -356,6 +392,15 @@
                 recognition.start();
             } catch (e) {
                 console.error('Speech recognition error:', e);
+                // In case of error, try to reinitialize
+                initSpeechRecognition();
+                setTimeout(() => {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.error('Second attempt failed:', e);
+                    }
+                }, 500);
             }
         }
         
@@ -366,7 +411,6 @@
             }
             isListening = false;
             document.getElementById('voiceButton').classList.remove('listening');
-            document.getElementById('status').textContent = 'Click the microphone to speak';
             animateVisualizer(false);
         }
         
@@ -435,6 +479,10 @@
             setTimeout(() => {
                 addResponse(response);
                 speak(response);
+                // Reset status to listening after processing
+                setTimeout(() => {
+                    document.getElementById('status').textContent = 'Listening...';
+                }, 1000);
             }, 500);
         }
         
@@ -523,7 +571,9 @@
         // Initialize on page load
         window.onload = function() {
             initSpeechRecognition();
-            speak("Hi there! I'm your voice assistant. How can I help you today?");
+            // Start listening automatically when the page loads
+            startListening();
+            speak("Hi there! I'm your voice assistant. I'm listening. How can I help you today?");
         };
     </script>
 </body>
