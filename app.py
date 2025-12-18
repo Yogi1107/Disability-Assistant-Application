@@ -20,8 +20,8 @@ engine = pyttsx3.init()
 current_question_index = 0
 
 # Initialize MediaPipe Hands
-mp_hands = mp.solutions.hands
-hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
+# # mp_hands = mp.solutions.hands
+# hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
 
 # Initialize text-to-speech engine
 engine = pyttsx3.init()
@@ -29,9 +29,9 @@ engine = pyttsx3.init()
 # Global variable to keep track of the current question index
 current_question_index = 0
 
-# Initialize MediaPipe Hands
-mp_hands = mp.solutions.hands
-hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
+# # Initialize MediaPipe Hands
+# mp_hands = mp.solutions.hands
+# hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
 
 # Initialize user profile system
 def init_user_profile():
