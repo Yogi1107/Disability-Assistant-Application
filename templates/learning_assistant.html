@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Assistant</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --light: #f3f4f6;
+            --dark: #1f2937;
+            --accent: #f59e0b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 40px 0;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .hero-image {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto 0;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+
+        .intro {
+            background-color: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            border-left: 5px solid var(--primary);
+        }
+
+        h2 {
+            color: var(--primary-dark);
+            font-size: 1.8rem;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light);
+            margin-top: 40px;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+        }
+
+        .resource {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .resource:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .resource-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .resource-header {
+            padding: 15px;
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .resource-body {
+            padding: 20px;
+        }
+
+        .resource h3 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .resource p {
+            color: #4b5563;
+            margin: 15px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--secondary);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: #059669;
+            text-decoration: none;
+        }
+
+        .quiz-section {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin: 40px 0;
+            text-align: center;
+            border-top: 5px solid var(--accent);
+        }
+
+        .quiz-btn {
+            background-color: var(--accent);
+            color: white;
+            font-size: 1.1rem;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+        }
+
+        .quiz-btn:hover {
+            background-color: #d97706;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 50px;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .resources-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-hands"></i> Learning Assistant</h1>
+            <p class="subtitle">Effective Communication with Disabled Individuals</p>
+            <img src="static/images/images (1).jpg" alt="People communicating using sign language" class="hero-image">
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="intro">
+            <p>Welcome to the Learning Assistant! Discover resources to help you learn effective communication strategies with disabled individuals, including sign language and assistive technologies.</p>
+        </div>
+        
+        <h2><i class="fas fa-book-open"></i> Learning Resources</h2>
+        <div class="resources-grid">
+            <div class="resource">
+                <img src="static/images/ASL.jpg" alt="American Sign Language" class="resource-image">
+                <div class="resource-header">
+                    <h3>Introduction to ASL</h3>
+                </div>
+                <div class="resource-body">
+                    <p>Learn the basics of American Sign Language with our comprehensive beginner's guide.</p>
+                    <a href="https://www.lingvano.com/asl/" class="btn" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> Learn More
+                    </a>
+                </div>
+            </div>
+            
+            <div class="resource">
+                <img src="static/images/Communication_with_disability.jpg" alt="Communication Strategies" class="resource-image">
+                <div class="resource-header">
+                    <h3>Communication Strategies</h3>
+                </div>
+                <div class="resource-body">
+                    <p>Discover effective techniques for communicating with individuals who have various disabilities.</p>
+                    <a href="https://www.nln.org/education/teaching-resources/professional-development-programsteaching-resourcesace-all/ace-d/additional-resources/communicating-with-people-with-disabilities-e030c45c-7836-6c70-9642-ff00005f0421" class="btn" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> Learn More
+                    </a>
+                </div>
+            </div>
+            
+            <div class="resource">
+                <img src="static/images/Assistive_tech.jpg" alt="Assistive Technologies" class="resource-image">
+                <div class="resource-header">
+                    <h3>Assistive Technologies</h3>
+                </div>
+                <div class="resource-body">
+                    <p>Explore modern assistive technologies that enable better communication and accessibility.</p>
+                    <a href="https://www.atia.org/home/at-resources/" class="btn" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> Learn More
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Basic Sign Language Card -->
+            <div class="resource">
+                <img src="static/images/BSL.jpg" alt="Basic Sign Language" class="resource-image">
+                <div class="resource-header">
+                    <h3>Basic Sign Language</h3>
+                </div>
+                <div class="resource-body">
+                    <p>Master everyday signs that you can use immediately to communicate with deaf or hard-of-hearing individuals.</p>
+                    <a href="https://www.startasl.com/top-10-25-american-sign-language-signs-for-beginners-the-most-know-top-10-25-asl-signs-to-learn-first/" class="btn" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="quiz-section">
+            <h2><i class="fas fa-question-circle"></i> Interactive Quiz</h2>
+            <p>Test your knowledge about communicating with disabled individuals and earn a certificate!</p>
+            <button class="quiz-btn" onclick="alert('Quiz feature coming soon!')">
+                <i class="fas fa-play-circle"></i> Start Quiz
+            </button>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>© 2025 Learning Assistant | Empowering inclusive communication</p>
+        </div>
+    </footer>
+</body>
+</html>
